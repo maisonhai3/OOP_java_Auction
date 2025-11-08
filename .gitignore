@@ -28,3 +28,13 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+/.idea/inspectionProfiles/Project_Default.xml
+/.idea/.gitignore
+/.idea/active-tab-highlighter.xml
+/.idea/copilot.data.migration.agent.xml
+/.idea/copilot.data.migration.ask.xml
+/.idea/copilot.data.migration.ask2agent.xml
+/.idea/copilot.data.migration.edit.xml
+/.idea/misc.xml
+/.idea/modules.xml
+/.idea/vcs.xml
