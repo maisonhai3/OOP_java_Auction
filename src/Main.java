@@ -1,3 +1,3 @@
 void main() {
-  IO.println(String.format("Hello and welcome!"));
+    javax.swing.SwingUtilities.invokeLater(() -> new auction.ui.EndUserApp());
 }
