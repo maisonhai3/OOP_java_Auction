@@ -1,8 +1,6 @@
 package auction.models;
 
-public class BigMamaManager {
-    // This must be Singleton
-
+public class Bidder {
     // Fields
     private User userAccount;
 }

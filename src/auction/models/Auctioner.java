@@ -1,7 +1,8 @@
 package auction.models;
 
-public class AuctionManager {
+public class Auctioner {
     // Fields
+    private User userAccount;
 
     // Constructors
 

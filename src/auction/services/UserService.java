@@ -9,8 +9,8 @@ public class UserService {
     // Constructors
 
     // Methods
-    public User createUser(User admin, String username) {
-        if (admin.getUserType() == UserType.ADMIN) {
+    public User createUser(String username) {
+        if (admin.getUserType() == UserType.MANAGER) {
             return new User(username);
         } else {
             throw new SecurityException("Only Admin can change user type.");
@@ -18,7 +18,7 @@ public class UserService {
     }
 
     public Boolean changeUserType(User admin, User user, UserType targetType) {
-        if (admin.getUserType() == UserType.ADMIN) {
+        if (admin.getUserType() == UserType.MANAGER) {
             user.setUserType(targetType);
             return true;
         } else {
