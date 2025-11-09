@@ -1,4 +1,4 @@
 package auction.models;
 
-public class Item {
+public class Consignor {
 }

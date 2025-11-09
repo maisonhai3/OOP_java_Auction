@@ -9,12 +9,20 @@ public class Auction {
 
     private String title;
     private List<User> participants;
-    private List<Item> items;
+    private List<Lot> catalog;
 
+    private AuctionStatus status;
     private Date startTime;
     private Date endTime;
 
-    private AuctionStatus status;
+    private Float openingBid;
+    private Float bidIncrement;
+    private Bid bid;
+    private Bid currentBid;
+
+    private Float hammerPrice;
+    private Float buyerPremiumFee;
+
 
     // Constructors
     public Auction() {
