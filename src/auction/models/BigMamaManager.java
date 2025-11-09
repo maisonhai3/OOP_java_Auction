@@ -4,5 +4,5 @@ public class BigMamaManager {
     // This must be Singleton
 
     // Fields
-    private User userAccount;
+    public User userAccount;
 }
