@@ -1,4 +1,7 @@
 package auction.models;
 
-public class UserType {
+public enum UserType {
+    BIDDER,
+    AUCTIONEER,
+    ADMIN
 }
