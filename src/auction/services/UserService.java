@@ -9,12 +9,16 @@ public class UserService {
     private BigMamaManager bigMamaManager;
 
     // Constructors
-    public UserService(BigMamaManager bigMmManager) {
-        bigMamaManager = bigMmManager;
+    public UserService() {
+        bigMamaManager = new BigMamaManager();
     }
 
     // Methods
     public User createUser(String username) {
+        return new User(username);
+    }
+
+    public User logInUser(String username) {
         return new User(username);
     }
 

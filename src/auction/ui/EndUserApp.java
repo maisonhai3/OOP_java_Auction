@@ -1,5 +1,7 @@
 package auction.ui;
 
+import auction.services.UserService;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -8,6 +10,10 @@ public class EndUserApp {
     private JFrame frame;
     private JPanel cardPanel;
     private CardLayout cardLayout;
+
+    UserService userService = new UserService();
+    String usernameText = "";
+
 
     // Constructors
     public static void main(String[] args) {
@@ -20,32 +26,46 @@ public class EndUserApp {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(800, 600);
         frame.setLocationRelativeTo(null);
-        frame.setVisible(true);
 
         // Panel
         cardLayout = new CardLayout();
         cardPanel = new JPanel(cardLayout);
 
         // Add all your scenes as separate panels
-        cardPanel.add(createLoginPanel(), "LOGIN");
+        cardPanel.add(createWelcomePanel(), "LOGIN");
         cardPanel.add(createLobbyPanel(), "LOBBY");
         cardPanel.add(createRoomPanel(), "ROOM");
+
+        // Finalize
+        frame.add(cardPanel);
+        frame.setVisible(true);
     }
 
-    private JPanel createLoginPanel() {
+    private JPanel createWelcomePanel() {
         JPanel panel = new JPanel(new GridBagLayout());
         JLabel label = new JLabel("Create Account");
+
         JTextField username = new JTextField(15);
+
         JButton createButton = new JButton("Create Account");
+        JButton loginButton = new JButton("Log In");
 
         createButton.addActionListener(e -> {
-            // Switch to lobby
+            this.usernameText = username.getText();
+            userService.createUser(usernameText);
+            cardLayout.show(cardPanel, "LOBBY");
+        });
+
+        loginButton.addActionListener(e -> {
+            this.usernameText = username.getText();
+            userService.logInUser(usernameText);
             cardLayout.show(cardPanel, "LOBBY");
         });
 
         panel.add(label);
         panel.add(username);
         panel.add(createButton);
+        panel.add(loginButton);
         return panel;
     }
 
