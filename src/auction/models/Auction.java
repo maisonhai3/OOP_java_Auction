@@ -25,7 +25,7 @@ public class Auction {
 
 
     // Constructors
-    public Auction() {
+    public Auction(Lot lot) {
     }
 
     // Methods
