@@ -1,4 +1,4 @@
-package auction.models;
+package auction.business_layer;
 
 import java.util.Date;
 import java.util.List;

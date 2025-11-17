@@ -1,6 +1,6 @@
-package auction.services;
+package auction.service_layer;
 
-import auction.models.AuctionSession;
+import auction.business_layer.AuctionSession;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,15 +26,6 @@ public class LobbyServices {
     // Services
     public List<AuctionSession> getAuctionSessionList() {
         return this.sessionList;
-    }
-
-    // Additional helper methods for managing sessions
-    public void addAuctionSession(AuctionSession session) {
-        this.sessionList.add(session);
-    }
-
-    public void removeAuctionSession(AuctionSession session) {
-        this.sessionList.remove(session);
     }
 
     public int getAuctionSessionCount() {

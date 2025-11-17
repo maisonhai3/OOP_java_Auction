@@ -1,4 +1,4 @@
-package auction.services;
+package auction.service_layer;
 
 public class NotificationService {
 }

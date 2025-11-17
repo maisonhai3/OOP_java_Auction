@@ -1,4 +1,4 @@
-package auction.models;
+package auction.business_layer;
 
 public class AuctionResult {
 }

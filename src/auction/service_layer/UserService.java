@@ -1,8 +1,8 @@
-package auction.services;
+package auction.service_layer;
 
-import auction.models.BigMamaManager;
-import auction.models.User;
-import auction.models.UserType;
+import auction.business_layer.BigMamaManager;
+import auction.business_layer.User;
+import auction.business_layer.UserType;
 
 public class UserService {
     // Fields
