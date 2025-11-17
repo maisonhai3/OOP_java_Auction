@@ -1,9 +1,9 @@
 package auction.services;
 
-import auction.models.Auction;
+import auction.models.AuctionSession;
 import auction.models.Lot;
 
-public class AuctionService {
+public class AuctionSessionService {
     // Fields
 
     // Constructors
@@ -13,7 +13,7 @@ public class AuctionService {
         return new Lot(name);
     }
 
-    public Auction createAuction(Lot lot) {
-        return new Auction(lot);
+    public AuctionSession createAuction(Lot lot) {
+        return new AuctionSession(lot);
     }
 }

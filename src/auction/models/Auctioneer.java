@@ -1,6 +1,6 @@
 package auction.models;
 
-public class Auctioner {
+public class Auctioneer {
     // Fields
     private User userAccount;
 

@@ -3,7 +3,7 @@ package auction.models;
 import java.util.Date;
 import java.util.List;
 
-public class Auction {
+public class AuctionSession {
     // Fields
     private String auctionId;
 
@@ -25,7 +25,7 @@ public class Auction {
 
 
     // Constructors
-    public Auction(Lot lot) {
+    public AuctionSession(Lot lot) {
     }
 
     // Methods
