@@ -43,12 +43,18 @@ public class EndUserApp {
 
     private JPanel createWelcomePanel() {
         JPanel panel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
         JLabel label = new JLabel("Create Account");
-
+        label.setFont(new Font("Arial", Font.BOLD, 18));
         JTextField username = new JTextField(15);
-
+        username.setPreferredSize(new Dimension(200, 30));
         JButton createButton = new JButton("Create Account");
+        createButton.setPreferredSize(new Dimension(250, 60));
         JButton loginButton = new JButton("Log In");
+        loginButton.setPreferredSize(new Dimension(250, 60));
 
         createButton.addActionListener(e -> {
             this.usernameText = username.getText();
@@ -62,39 +68,66 @@ public class EndUserApp {
             cardLayout.show(cardPanel, "LOBBY");
         });
 
-        panel.add(label);
-        panel.add(username);
-        panel.add(createButton);
-        panel.add(loginButton);
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 2;
+        panel.add(label, gbc);
+
+        gbc.gridy = 1;
+        panel.add(username, gbc);
+
+        gbc.gridy = 2;
+        gbc.gridwidth = 1;
+        panel.add(createButton, gbc);
+
+        gbc.gridx = 1;
+        panel.add(loginButton, gbc);
+
         return panel;
     }
 
     private JPanel createLobbyPanel() {
-        JPanel panel = new JPanel(new BorderLayout());
+        JPanel panel = new JPanel(new BorderLayout(10, 10));
+        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
         JLabel title = new JLabel("Auction Lobby", SwingConstants.CENTER);
+        title.setFont(new Font("Arial", Font.BOLD, 24));
+
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         JButton joinButton = new JButton("Join Auction");
+        joinButton.setPreferredSize(new Dimension(150, 40));
 
         joinButton.addActionListener(e -> {
             // Switch to auction room
             cardLayout.show(cardPanel, "ROOM");
         });
 
+        buttonPanel.add(joinButton);
+
         panel.add(title, BorderLayout.NORTH);
-        panel.add(joinButton, BorderLayout.SOUTH);
+        panel.add(buttonPanel, BorderLayout.SOUTH);
         return panel;
     }
 
     private JPanel createRoomPanel() {
-        JPanel panel = new JPanel(new BorderLayout());
+        JPanel panel = new JPanel(new BorderLayout(10, 10));
+        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
         JLabel title = new JLabel("Auction Room", SwingConstants.CENTER);
+        title.setFont(new Font("Arial", Font.BOLD, 24));
+
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         JButton backButton = new JButton("Back to Lobby");
+        backButton.setPreferredSize(new Dimension(150, 40));
 
         backButton.addActionListener(e -> {
             cardLayout.show(cardPanel, "LOBBY");
         });
 
+        buttonPanel.add(backButton);
+
         panel.add(title, BorderLayout.NORTH);
-        panel.add(backButton, BorderLayout.SOUTH);
+        panel.add(buttonPanel, BorderLayout.SOUTH);
         return panel;
     }
 }

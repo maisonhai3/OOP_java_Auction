@@ -7,9 +7,9 @@ public class Auctioner {
     // Constructors
 
     // Methods
-    public Auction createAuction() {
-        return new Auction();
-    }
+//    public Auction createAuction() {
+//        return new Auction();
+//    }
 
     public Boolean startAuction() {
         return true;
