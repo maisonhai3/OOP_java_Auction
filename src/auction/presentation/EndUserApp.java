@@ -1,7 +1,7 @@
-package auction.ui_layer;
+package auction.presentation;
 
-import auction.service_layer.LobbyServices;
-import auction.service_layer.UserService;
+import auction.usecases.LobbyServices;
+import auction.usecases.UserService;
 
 import javax.swing.*;
 import java.awt.*;

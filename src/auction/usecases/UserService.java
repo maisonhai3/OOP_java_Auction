@@ -1,8 +1,8 @@
-package auction.service_layer;
+package auction.usecases;
 
-import auction.business_layer.BigMamaManager;
-import auction.business_layer.User;
-import auction.business_layer.UserType;
+import auction.domain.BigMamaManager;
+import auction.domain.User;
+import auction.domain.UserType;
 
 public class UserService {
     // Fields

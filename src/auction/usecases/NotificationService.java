@@ -1,4 +1,4 @@
-package auction.service_layer;
+package auction.usecases;
 
 public class NotificationService {
 }

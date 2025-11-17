@@ -1,7 +1,7 @@
-package auction.service_layer;
+package auction.usecases;
 
-import auction.business_layer.AuctionSession;
-import auction.business_layer.Lot;
+import auction.domain.AuctionSession;
+import auction.domain.Lot;
 
 public class AuctionSessionService {
     // Fields

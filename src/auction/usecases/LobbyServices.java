@@ -1,6 +1,6 @@
-package auction.service_layer;
+package auction.usecases;
 
-import auction.business_layer.AuctionSession;
+import auction.domain.AuctionSession;
 
 import java.util.ArrayList;
 import java.util.List;

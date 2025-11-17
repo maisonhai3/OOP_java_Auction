@@ -1,3 +1,3 @@
 void main() {
-    javax.swing.SwingUtilities.invokeLater(() -> new auction.ui_layer.EndUserApp());
+    javax.swing.SwingUtilities.invokeLater(() -> new auction.presentation.EndUserApp());
 }

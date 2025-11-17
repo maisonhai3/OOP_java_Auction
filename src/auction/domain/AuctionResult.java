@@ -1,4 +1,4 @@
-package auction.business_layer;
+package auction.domain;
 
 public class AuctionResult {
 }
