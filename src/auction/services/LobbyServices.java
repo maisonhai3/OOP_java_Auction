@@ -24,20 +24,20 @@ public class LobbyServices {
     }
 
     // Services
-    public List<AuctionSession> getSessionList() {
+    public List<AuctionSession> getAuctionSessionList() {
         return this.sessionList;
     }
 
     // Additional helper methods for managing sessions
-    public void addSession(AuctionSession session) {
+    public void addAuctionSession(AuctionSession session) {
         this.sessionList.add(session);
     }
 
-    public void removeSession(AuctionSession session) {
+    public void removeAuctionSession(AuctionSession session) {
         this.sessionList.remove(session);
     }
 
-    public int getSessionCount() {
+    public int getAuctionSessionCount() {
         return this.sessionList.size();
     }
 }
