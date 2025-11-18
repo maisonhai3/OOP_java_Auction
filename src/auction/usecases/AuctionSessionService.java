@@ -1,14 +1,17 @@
 package auction.usecases;
 
 import auction.domain.AuctionSession;
+import auction.domain.Lot;
 
 public class AuctionSessionService {
     // Fields
+    private LotService lotService = LotService.getInstance();
 
     // Constructors
 
     // Methods
-    public AuctionSession createAuctionSession(String title, String lotID) {
-        return new AuctionSession();
+    public AuctionSession createAuctionSession(String title, int lotID) {
+        Lot lot = lotService.getLot(lotID);
+        return new AuctionSession(lot);
     }
 }

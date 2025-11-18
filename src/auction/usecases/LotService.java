@@ -74,9 +74,9 @@ public class LotService {
         return new ArrayList<>(lotsInStorage); // Return copy for safety
     }
 
-    public Lot getLot(int index) {
-        if (index >= 0 && index < lotsInStorage.size()) {
-            return lotsInStorage.get(index);
+    public Lot getLot(int id) {
+        if (id >= 0 && id < lotsInStorage.size()) {
+            return lotsInStorage.get(id);
         }
         return null;
     }
