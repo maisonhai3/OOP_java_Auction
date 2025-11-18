@@ -14,6 +14,7 @@ public class StaffApp {
     private JFrame frame;
     private JPanel auctionListPanel;
     private JPanel lotListPanel;
+    private JComboBox<LotItem> lotComboBox;
 
     // Services
     private final StaffLobbyServices staffLobbyServices = StaffLobbyServices.getInstance();
@@ -236,8 +237,9 @@ public class StaffApp {
                 estimatePriceField.setText("");
                 reservePriceField.setText("");
 
-                // Refresh the list
+                // Refresh the list and combo box
                 refreshLotList();
+                refreshLotComboBox();
             } else {
                 JOptionPane.showMessageDialog(frame,
                         "Failed to create lot. Check the prices are valid numbers.",
@@ -327,20 +329,19 @@ public class StaffApp {
         ));
         titleField.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        // Lot ID field
-        JLabel lotIdLabel = new JLabel("Lot ID");
-        lotIdLabel.setFont(LABEL_FONT);
-        lotIdLabel.setForeground(TEXT_COLOR);
-        lotIdLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        // Lot Selection dropdown
+        JLabel lotLabel = new JLabel("Select Lot");
+        lotLabel.setFont(LABEL_FONT);
+        lotLabel.setForeground(TEXT_COLOR);
+        lotLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JTextField lotIdField = new JTextField(30);
-        lotIdField.setFont(SUBHEADING_FONT);
-        lotIdField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
-        lotIdField.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(189, 195, 199), 1),
-                BorderFactory.createEmptyBorder(8, 12, 8, 12)
-        ));
-        lotIdField.setAlignmentX(Component.LEFT_ALIGNMENT);
+        lotComboBox = new JComboBox<>();
+        lotComboBox.setFont(SUBHEADING_FONT);
+        lotComboBox.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+        lotComboBox.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        // Populate with existing lots
+        refreshLotComboBox();
 
         // Create button
         JButton createButton = createStyledButton("Create Auction Session", ACCENT_COLOR, Color.WHITE);
@@ -348,50 +349,42 @@ public class StaffApp {
         createButton.setAlignmentX(Component.LEFT_ALIGNMENT);
         createButton.addActionListener(e -> {
             String title = titleField.getText().trim();
-            String lotIdStr = lotIdField.getText().trim();
+            LotItem selectedLotItem = (LotItem) lotComboBox.getSelectedItem();
 
-            if (title.isEmpty() || lotIdStr.isEmpty()) {
+            if (title.isEmpty()) {
                 JOptionPane.showMessageDialog(frame,
-                        "Please fill in all fields",
+                        "Auction title is required",
                         "Validation Error",
                         JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
-            try {
-                int lotId = Integer.parseInt(lotIdStr);
-
-                // Check if lot exists
-                if (lotService.getLot(lotId) == null) {
-                    JOptionPane.showMessageDialog(frame,
-                            "Lot ID " + lotId + " does not exist. Please create the lot first.",
-                            "Error",
-                            JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-
-                // Create auction session
-                AuctionSession auction = staffLobbyServices.createAuctionSession(title, lotId);
-
-                // Show success message
+            if (selectedLotItem == null) {
                 JOptionPane.showMessageDialog(frame,
-                        "Auction session created successfully!",
-                        "Success",
-                        JOptionPane.INFORMATION_MESSAGE);
-
-                // Clear fields
-                titleField.setText("");
-                lotIdField.setText("");
-
-                // Refresh the list
-                refreshAuctionList();
-
-            } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(frame,
-                        "Lot ID must be a number",
-                        "Invalid Input",
-                        JOptionPane.ERROR_MESSAGE);
+                        "Please select a lot. Create a lot first if none exists.",
+                        "Validation Error",
+                        JOptionPane.WARNING_MESSAGE);
+                return;
             }
+
+            // Get lot ID from selected item
+            int lotId = selectedLotItem.getId();
+
+            // Create auction session
+            staffLobbyServices.createAuctionSession(title, lotId);
+
+            // Show success message
+            JOptionPane.showMessageDialog(frame,
+                    "Auction session created successfully!",
+                    "Success",
+                    JOptionPane.INFORMATION_MESSAGE);
+
+            // Clear fields
+            titleField.setText("");
+            lotComboBox.setSelectedIndex(-1);
+
+            // Refresh the list
+            refreshAuctionList();
         });
 
         // Add components to form panel
@@ -399,13 +392,28 @@ public class StaffApp {
         formPanel.add(Box.createVerticalStrut(8));
         formPanel.add(titleField);
         formPanel.add(Box.createVerticalStrut(15));
-        formPanel.add(lotIdLabel);
+        formPanel.add(lotLabel);
         formPanel.add(Box.createVerticalStrut(8));
-        formPanel.add(lotIdField);
+        formPanel.add(lotComboBox);
         formPanel.add(Box.createVerticalStrut(20));
         formPanel.add(createButton);
 
         return formPanel;
+    }
+
+    private void refreshLotComboBox() {
+        lotComboBox.removeAllItems();
+
+        List<Lot> lots = lotService.getAllLots();
+
+        if (lots.isEmpty()) {
+            // Optionally add a placeholder
+            lotComboBox.addItem(null);
+        } else {
+            for (int i = 0; i < lots.size(); i++) {
+                lotComboBox.addItem(new LotItem(i, lots.get(i)));
+            }
+        }
     }
 
     private void refreshLotList() {
@@ -538,5 +546,29 @@ public class StaffApp {
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         return button;
+    }
+
+    // Helper class to display Lot in combo box
+    private static class LotItem {
+        private final int id;
+        private final Lot lot;
+
+        public LotItem(int id, Lot lot) {
+            this.id = id;
+            this.lot = lot;
+        }
+
+        public int getId() {
+            return id;
+        }
+
+        public Lot getLot() {
+            return lot;
+        }
+
+        @Override
+        public String toString() {
+            return "Lot #" + id + ": " + lot.getName();
+        }
     }
 }
