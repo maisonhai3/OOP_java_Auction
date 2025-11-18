@@ -47,7 +47,9 @@ public class StaffLobbyServices {
     }
 
     public List<AuctionSession> getAvailableAuctionSession() {
-        // Get only SCHEDULED and STARTED sessions from database
-        return auctionSessionRepository.findByStatus(AuctionStatus.SCHEDULED, AuctionStatus.STARTED);
+        return auctionSessionRepository.findByStatus(
+                AuctionStatus.SCHEDULED,
+                AuctionStatus.STARTED
+        );
     }
 }
