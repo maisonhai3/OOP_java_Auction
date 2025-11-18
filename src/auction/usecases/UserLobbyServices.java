@@ -5,21 +5,21 @@ import auction.domain.AuctionSession;
 import java.util.ArrayList;
 import java.util.List;
 
-public class LobbyServices {
+public class UserLobbyServices {
     // Singleton instance - Eager initialization (created at app start)
-    private static final LobbyServices INSTANCE = new LobbyServices();
+    private static final UserLobbyServices INSTANCE = new UserLobbyServices();
 
     // Fields
     private List<AuctionSession> sessionList;
 
     // Private Constructor - prevents instantiation from outside
-    private LobbyServices() {
+    private UserLobbyServices() {
         this.sessionList = new ArrayList<>();
         System.out.println("LobbyServices initialized");
     }
 
     // Public method to get the singleton instance
-    public static LobbyServices getInstance() {
+    public static UserLobbyServices getInstance() {
         return INSTANCE;
     }
 

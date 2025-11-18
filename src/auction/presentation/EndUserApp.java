@@ -1,6 +1,6 @@
 package auction.presentation;
 
-import auction.usecases.LobbyServices;
+import auction.usecases.UserLobbyServices;
 import auction.usecases.UserService;
 
 import javax.swing.*;
@@ -38,7 +38,7 @@ public class EndUserApp {
     public static void main(String[] args) {
         // Initialize services at app start (Singleton pattern - Eager initialization)
         System.out.println("Initializing application services...");
-        LobbyServices.getInstance(); // This triggers the singleton initialization
+        UserLobbyServices.getInstance(); // This triggers the singleton initialization
 
         // Launch the UI
         SwingUtilities.invokeLater(() -> new EndUserApp());
