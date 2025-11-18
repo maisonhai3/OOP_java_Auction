@@ -2,7 +2,7 @@ package auction.domain;
 
 public enum AuctionStatus {
     SCHEDULED,
-    IN_PROCESS,
+    STARTED,
     IN_FAIR_WARNING,
     CLOSED
 }

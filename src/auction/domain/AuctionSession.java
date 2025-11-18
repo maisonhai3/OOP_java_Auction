@@ -29,4 +29,7 @@ public class AuctionSession {
     }
 
     // Methods
+    public AuctionStatus getStatus() {
+        return this.status;
+    }
 }
