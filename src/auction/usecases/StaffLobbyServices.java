@@ -3,6 +3,7 @@ package auction.usecases;
 import auction.domain.AuctionSession;
 import auction.domain.Lot;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class StaffLobbyServices {
@@ -15,6 +16,7 @@ public class StaffLobbyServices {
     // Singleton
     private static final StaffLobbyServices INSTANCE = new StaffLobbyServices();
     private StaffLobbyServices() {
+        this.auctionList = new ArrayList<>();
         System.out.println("StaffLobbyServices initialized");
     }
     public static StaffLobbyServices getInstance() {
@@ -26,7 +28,14 @@ public class StaffLobbyServices {
         Lot lot = lotService.getLot(lotID);
         AuctionSession auction = new AuctionSession(lot);
 
+        // Add to list
+        this.auctionList.add(auction);
+
         return auction;
+    }
+
+    public List<AuctionSession> getAllAuctionSessions() {
+        return new ArrayList<>(this.auctionList);
     }
 
     public List<AuctionSession> getAvailableAuctionSession() {
