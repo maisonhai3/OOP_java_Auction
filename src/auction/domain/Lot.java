@@ -12,16 +12,75 @@ public class Lot {
 
     private Boolean noReserve;
 
-    // Constructors
-    public Lot(String name, Float estimatePrice, Float reservePrice) {
-        this.name = name;
-        this.estimatePrice = estimatePrice;
-        this.reservePrice = reservePrice;
+    // PRIVATE constructor - only accessible via Builder
+    private Lot(LotBuilder builder) {
+        this.name = builder.name;
+        this.estimatePrice = builder.estimatePrice;
+        this.reservePrice = builder.reservePrice;
+        this.status = LotStatus.UNSOLD; // Default status
+        this.noReserve = false; // Default value
     }
 
-    public Lot(String name) {
-        this(name, null, null);
+    // Getters
+    public String getName() {
+        return name;
     }
 
-    // Methods
+    public LotStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(LotStatus status) {
+        this.status = status;
+    }
+
+    public Float getEstimatePrice() {
+        return estimatePrice;
+    }
+
+    public Float getReservePrice() {
+        return reservePrice;
+    }
+
+    public Boolean getNoReserve() {
+        return noReserve;
+    }
+
+    public void setNoReserve(Boolean noReserve) {
+        this.noReserve = noReserve;
+    }
+
+    // Builder Pattern
+    public static class LotBuilder {
+        // Required field
+        private final String name;
+
+        // Optional fields
+        private Float estimatePrice = null;
+        private Float reservePrice = null;
+
+        // Constructor - only requires mandatory fields
+        public LotBuilder(String name) {
+            if (name == null || name.trim().isEmpty()) {
+                throw new IllegalArgumentException("Name is required");
+            }
+            this.name = name;
+        }
+
+        // Fluent methods for optional fields
+        public LotBuilder estimatePrice(Float price) {
+            this.estimatePrice = price;
+            return this;
+        }
+
+        public LotBuilder reservePrice(Float price) {
+            this.reservePrice = price;
+            return this;
+        }
+
+        // Build method - creates the Lot
+        public Lot build() {
+            return new Lot(this);
+        }
+    }
 }
