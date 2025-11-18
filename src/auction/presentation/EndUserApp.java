@@ -14,7 +14,6 @@ public class EndUserApp {
     private JPanel cardPanel;
     private CardLayout cardLayout;
 
-    UserService userService = new UserService();
     String usernameText = "";
 
     // Modern Color Scheme
@@ -38,7 +37,8 @@ public class EndUserApp {
     public static void main(String[] args) {
         // Initialize services at app start (Singleton pattern - Eager initialization)
         System.out.println("Initializing application services...");
-        UserLobbyServices.getInstance(); // This triggers the singleton initialization
+        UserLobbyServices.getInstance();
+        UserService.getInstance();
 
         // Launch the UI
         SwingUtilities.invokeLater(() -> new EndUserApp());
@@ -131,7 +131,7 @@ public class EndUserApp {
         loginButton.addActionListener(e -> {
             this.usernameText = username.getText();
             if (!usernameText.trim().isEmpty()) {
-                userService.logInUser(usernameText);
+                UserService.logInUser(usernameText);
                 cardLayout.show(cardPanel, "LOBBY");
             }
         });
@@ -145,7 +145,7 @@ public class EndUserApp {
         createButton.addActionListener(e -> {
             this.usernameText = username.getText();
             if (!usernameText.trim().isEmpty()) {
-                userService.createUser(usernameText);
+                UserService.createUser(usernameText);
                 cardLayout.show(cardPanel, "LOBBY");
             }
         });

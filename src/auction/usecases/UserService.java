@@ -21,11 +21,11 @@ public class UserService {
     }
 
     // Methods
-    public User createUser(String username) {
+    public static User createUser(String username) {
         return new User(username);
     }
 
-    public User logInUser(String username) {
+    public static User logInUser(String username) {
         return new User(username);
     }
 
