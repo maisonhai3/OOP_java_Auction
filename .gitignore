@@ -33,7 +33,7 @@ bin/
 /.idea/active-tab-highlighter.xml
 /.idea/copilot.data.migration.agent.xml
 /.idea/copilot.data.migration.ask.xml
-/.idea/copilot.data.migration.ask2agent.xml
+/.idta/copilot.data.migration.ask2agent.xml
 /.idea/copilot.data.migration.edit.xml
 /.idea/misc.xml
 /.idea/modules.xml
@@ -41,6 +41,7 @@ bin/
 /.idea/compiler.xml
 /.idea/encodings.xml
 /.idea/jarRepositories.xml
+/target/**/**
 /target/classes/auction/domain/Auctioneer.class
 /target/classes/auction/domain/AuctionResult.class
 /target/classes/auction/domain/AuctionSession.class
