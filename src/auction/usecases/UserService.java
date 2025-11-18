@@ -1,16 +1,16 @@
 package auction.usecases;
 
-import auction.domain.BigMamaManager;
+import auction.domain.SuperAdmin;
 import auction.domain.User;
 import auction.domain.UserType;
 
 public class UserService {
     // Fields
-    private BigMamaManager bigMamaManager;
+    private SuperAdmin bigMamaManager;
 
     // Constructors
     public UserService() {
-        bigMamaManager = new BigMamaManager();
+        bigMamaManager = new SuperAdmin();
     }
 
     // Methods

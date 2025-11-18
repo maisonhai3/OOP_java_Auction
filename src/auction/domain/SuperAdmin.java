@@ -1,6 +1,6 @@
 package auction.domain;
 
-public class BigMamaManager {
+public class SuperAdmin {
     // This must be Singleton
 
     // Fields
