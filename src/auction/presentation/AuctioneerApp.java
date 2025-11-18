@@ -1,0 +1,235 @@
+package auction.presentation;
+
+import auction.domain.AuctionSession;
+import auction.usecases.AuctioneerLobbyService;
+
+import javax.swing.*;
+import java.awt.*;
+import java.util.List;
+
+public class AuctioneerApp {
+    // Fields
+    private JFrame frame;
+    private JPanel auctionListPanel;
+
+    // Services
+    private final AuctioneerLobbyService auctioneerLobbyService = AuctioneerLobbyService.getInstance();
+
+    // Modern Color Scheme (same as other apps)
+    private static final Color PRIMARY_COLOR = new Color(41, 128, 185);      // Professional Blue
+    private static final Color PRIMARY_DARK = new Color(31, 97, 141);        // Darker Blue
+    private static final Color ACCENT_COLOR = new Color(46, 204, 113);       // Green
+    private static final Color BACKGROUND_COLOR = new Color(236, 240, 241);  // Light Gray
+    private static final Color CARD_BACKGROUND = Color.WHITE;
+    private static final Color TEXT_COLOR = new Color(44, 62, 80);           // Dark Gray
+    private static final Color TEXT_LIGHT = new Color(127, 140, 141);        // Light Gray Text
+    private static final Color ORANGE_COLOR = new Color(230, 126, 34);       // Orange for auctioneer
+
+    // Fonts
+    private static final Font TITLE_FONT = new Font("Segoe UI", Font.BOLD, 32);
+    private static final Font HEADING_FONT = new Font("Segoe UI", Font.BOLD, 20);
+    private static final Font SUBHEADING_FONT = new Font("Segoe UI", Font.PLAIN, 16);
+    private static final Font BUTTON_FONT = new Font("Segoe UI", Font.BOLD, 14);
+    private static final Font LABEL_FONT = new Font("Segoe UI", Font.PLAIN, 13);
+
+    // Main method
+    public static void main(String[] args) {
+        // Initialize services at app start
+        System.out.println("Initializing auctioneer application services...");
+        AuctioneerLobbyService.getInstance();
+
+        // Launch the UI
+        SwingUtilities.invokeLater(() -> new AuctioneerApp());
+    }
+
+    // Constructor
+    public AuctioneerApp() {
+        // Main Window
+        frame = new JFrame("Auctioneer Portal - Auction Management");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setMinimumSize(new Dimension(800, 600));
+        frame.setSize(1000, 700);
+        frame.setLocationRelativeTo(null);
+
+        // Main Panel
+        JPanel mainPanel = new JPanel(new BorderLayout(15, 15));
+        mainPanel.setBackground(BACKGROUND_COLOR);
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(25, 30, 25, 30));
+
+        // Header
+        JPanel headerPanel = createHeaderPanel();
+
+        // Auction List Panel
+        auctionListPanel = new JPanel();
+        auctionListPanel.setLayout(new BoxLayout(auctionListPanel, BoxLayout.Y_AXIS));
+        auctionListPanel.setBackground(BACKGROUND_COLOR);
+
+        JScrollPane scrollPane = new JScrollPane(auctionListPanel);
+        scrollPane.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createTitledBorder(
+                        BorderFactory.createLineBorder(new Color(189, 195, 199), 1),
+                        "Available Auction Sessions",
+                        0,
+                        0,
+                        SUBHEADING_FONT,
+                        TEXT_COLOR
+                ),
+                BorderFactory.createEmptyBorder(10, 10, 10, 10)
+        ));
+        scrollPane.getViewport().setBackground(BACKGROUND_COLOR);
+
+        // Bottom panel with refresh button
+        JPanel bottomPanel = createBottomPanel();
+
+        // Add panels to main panel
+        mainPanel.add(headerPanel, BorderLayout.NORTH);
+        mainPanel.add(scrollPane, BorderLayout.CENTER);
+        mainPanel.add(bottomPanel, BorderLayout.SOUTH);
+
+        // Add main panel to frame
+        frame.add(mainPanel);
+        frame.setVisible(true);
+
+        // Initial load
+        refreshAuctionList();
+    }
+
+    private JPanel createHeaderPanel() {
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setBackground(CARD_BACKGROUND);
+        headerPanel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(189, 195, 199), 1),
+                BorderFactory.createEmptyBorder(20, 25, 20, 25)
+        ));
+
+        JLabel title = new JLabel("Auctioneer Portal");
+        title.setFont(HEADING_FONT);
+        title.setForeground(ORANGE_COLOR);
+
+        JLabel subtitle = new JLabel("Manage Live Auctions");
+        subtitle.setFont(LABEL_FONT);
+        subtitle.setForeground(TEXT_LIGHT);
+
+        headerPanel.add(title, BorderLayout.WEST);
+        headerPanel.add(subtitle, BorderLayout.EAST);
+
+        return headerPanel;
+    }
+
+    private JPanel createBottomPanel() {
+        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 0));
+        bottomPanel.setBackground(BACKGROUND_COLOR);
+
+        JButton refreshButton = createStyledButton("Refresh List", ACCENT_COLOR, Color.WHITE);
+        refreshButton.setPreferredSize(new Dimension(150, 45));
+        refreshButton.addActionListener(e -> refreshAuctionList());
+
+        bottomPanel.add(refreshButton);
+
+        return bottomPanel;
+    }
+
+    private void refreshAuctionList() {
+        // Clear existing list
+        auctionListPanel.removeAll();
+
+        // Get available auction sessions
+        List<AuctionSession> auctions = auctioneerLobbyService.getAvailableAuctionSession();
+
+        if (auctions.isEmpty()) {
+            // Show empty state message
+            JLabel emptyLabel = new JLabel("No available auction sessions");
+            emptyLabel.setFont(SUBHEADING_FONT);
+            emptyLabel.setForeground(TEXT_LIGHT);
+            emptyLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            auctionListPanel.add(Box.createVerticalStrut(50));
+            auctionListPanel.add(emptyLabel);
+        } else {
+            // Create cards for each auction session
+            for (int i = 0; i < auctions.size(); i++) {
+                AuctionSession auction = auctions.get(i);
+                auctionListPanel.add(createAuctionCard(auction, i));
+                auctionListPanel.add(Box.createVerticalStrut(10));
+            }
+        }
+
+        // Refresh the UI
+        auctionListPanel.revalidate();
+        auctionListPanel.repaint();
+
+        System.out.println("Auction list refreshed. Found " + auctions.size() + " available auctions.");
+    }
+
+    private JPanel createAuctionCard(AuctionSession auction, int index) {
+        JPanel card = new JPanel(new BorderLayout(15, 10));
+        card.setBackground(CARD_BACKGROUND);
+        card.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(189, 195, 199), 1),
+                BorderFactory.createEmptyBorder(20, 25, 20, 25)
+        ));
+        card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 100));
+
+        // Left side - Auction info
+        JPanel infoPanel = new JPanel();
+        infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
+        infoPanel.setOpaque(false);
+
+        String title = auction.getTitle() != null ? auction.getTitle() : "Auction Session #" + (index + 1);
+        JLabel nameLabel = new JLabel(title);
+        nameLabel.setFont(SUBHEADING_FONT);
+        nameLabel.setForeground(TEXT_COLOR);
+
+        String statusText = auction.getStatus() != null ? auction.getStatus().toString() : "PENDING";
+        String itemCount = auction.getCatalog() != null ? auction.getCatalog().size() + " item(s)" : "0 items";
+        JLabel detailsLabel = new JLabel("Status: " + statusText + " | " + itemCount);
+        detailsLabel.setFont(LABEL_FONT);
+        detailsLabel.setForeground(TEXT_LIGHT);
+
+        infoPanel.add(nameLabel);
+        infoPanel.add(Box.createVerticalStrut(5));
+        infoPanel.add(detailsLabel);
+
+        // Right side - Action buttons
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        buttonPanel.setOpaque(false);
+
+        JButton manageButton = createStyledButton("Manage", ORANGE_COLOR, Color.WHITE);
+        manageButton.setPreferredSize(new Dimension(100, 35));
+        manageButton.addActionListener(e -> {
+            JOptionPane.showMessageDialog(frame,
+                    "Managing auction: " + title,
+                    "Manage Auction",
+                    JOptionPane.INFORMATION_MESSAGE);
+        });
+
+        JButton startButton = createStyledButton("Start", ACCENT_COLOR, Color.WHITE);
+        startButton.setPreferredSize(new Dimension(80, 35));
+        startButton.addActionListener(e -> {
+            JOptionPane.showMessageDialog(frame,
+                    "Starting auction: " + title,
+                    "Start Auction",
+                    JOptionPane.INFORMATION_MESSAGE);
+        });
+
+        buttonPanel.add(manageButton);
+        buttonPanel.add(startButton);
+
+        card.add(infoPanel, BorderLayout.CENTER);
+        card.add(buttonPanel, BorderLayout.EAST);
+
+        return card;
+    }
+
+    // Helper method to create styled buttons
+    private JButton createStyledButton(String text, Color bgColor, Color fgColor) {
+        JButton button = new JButton(text);
+        button.setFont(BUTTON_FONT);
+        button.setBackground(bgColor);
+        button.setForeground(fgColor);
+        button.setFocusPainted(false);
+        button.setBorder(BorderFactory.createEmptyBorder(12, 24, 12, 24));
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        return button;
+    }
+}
