@@ -5,12 +5,19 @@ import auction.domain.User;
 import auction.domain.UserType;
 
 public class UserService {
+    // Singleton
+    private static final UserService INSTANCE = new UserService();
+
     // Fields
     private SuperAdmin bigMamaManager;
 
-    // Constructors
-    public UserService() {
+    // Private Constructor
+    private UserService() {
         bigMamaManager = new SuperAdmin();
+    }
+
+    public static UserService getInstance() {
+        return INSTANCE;
     }
 
     // Methods
