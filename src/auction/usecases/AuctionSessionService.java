@@ -5,7 +5,7 @@ import auction.domain.Lot;
 
 public class AuctionSessionService {
     // Fields
-    private LotService lotService = LotService.getInstance();
+    private final LotService lotService = LotService.getInstance();
 
     // Constructors
 
