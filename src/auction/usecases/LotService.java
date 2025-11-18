@@ -1,18 +1,18 @@
 package auction.usecases;
 
 import auction.domain.Lot;
+import auction.infrastructure.LotRepository;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class LotService {
-    private List<Lot> lotsInStorage;
+    private final LotRepository lotRepository;
 
     // Singleton
     private static final LotService INSTANCE = new LotService();
 
     private LotService() {
-        this.lotsInStorage = new ArrayList<>();
+        this.lotRepository = new LotRepository();
     }
 
     public static LotService getInstance() {
@@ -56,36 +56,40 @@ public class LotService {
                 .reservePrice(reservePrice)
                 .build();
 
-        // 3. Store the object
-        this.addLot(lot);
+        // 3. Save to database
+        int lotId = lotRepository.save(lot);
+        if (lotId > 0) {
+            System.out.println("Lot created successfully with ID: " + lotId);
+        }
 
         return lot;
     }
 
     /**
-     * Internal method to add a Lot to storage.
-     * Private because only the service itself should call this.
+     * Get all lots from database
      */
-    private void addLot(Lot lot) {
-        lotsInStorage.add(lot);
-    }
-
     public List<Lot> getAllLots() {
-        return new ArrayList<>(lotsInStorage); // Return copy for safety
+        return lotRepository.findAll();
     }
 
+    /**
+     * Get lot by database ID
+     */
     public Lot getLot(int id) {
-        if (id >= 0 && id < lotsInStorage.size()) {
-            return lotsInStorage.get(id);
-        }
-        return null;
+        return lotRepository.findById(id);
     }
 
-    public boolean removeLot(Lot lot) {
-        return lotsInStorage.remove(lot);
+    /**
+     * Delete lot by database ID
+     */
+    public boolean removeLot(int id) {
+        return lotRepository.delete(id);
     }
 
+    /**
+     * Get total count of lots in database
+     */
     public int getLotCount() {
-        return lotsInStorage.size();
+        return lotRepository.count();
     }
 }

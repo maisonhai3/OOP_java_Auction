@@ -26,10 +26,20 @@ public class AuctionSession {
 
     // Constructors
     public AuctionSession(Lot lot) {
-        status = AuctionStatus.SCHEDULED;
+        this.catalog = new java.util.ArrayList<>();
+        if (lot != null) {
+            this.catalog.add(lot);
+        }
+        this.status = AuctionStatus.SCHEDULED;
     }
 
-    // Methods
+    // Constructor for repository (when loading from database)
+    public AuctionSession() {
+        this.catalog = new java.util.ArrayList<>();
+        this.status = AuctionStatus.SCHEDULED;
+    }
+
+    // Getters
     public String getTitle() {
         return this.title;
     }
@@ -40,5 +50,18 @@ public class AuctionSession {
 
     public List<Lot> getCatalog() {
         return this.catalog;
+    }
+
+    // Setters
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public void setStatus(AuctionStatus status) {
+        this.status = status;
+    }
+
+    public void setCatalog(List<Lot> catalog) {
+        this.catalog = catalog;
     }
 }

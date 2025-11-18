@@ -1,22 +1,21 @@
 package auction.usecases;
 
 import auction.domain.AuctionSession;
+import auction.domain.AuctionStatus;
 import auction.domain.Lot;
+import auction.infrastructure.AuctionSessionRepository;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class StaffLobbyServices {
     // Service hub
     private final LotService lotService = LotService.getInstance();
-
-    // Fields
-    private List<AuctionSession> auctionList;
+    private final AuctionSessionRepository auctionSessionRepository;
 
     // Singleton
     private static final StaffLobbyServices INSTANCE = new StaffLobbyServices();
     private StaffLobbyServices() {
-        this.auctionList = new ArrayList<>();
+        this.auctionSessionRepository = new AuctionSessionRepository();
         System.out.println("StaffLobbyServices initialized");
     }
     public static StaffLobbyServices getInstance() {
@@ -26,30 +25,29 @@ public class StaffLobbyServices {
     // Methods
     public AuctionSession createAuctionSession(String title, int lotID) {
         Lot lot = lotService.getLot(lotID);
-        AuctionSession auction = new AuctionSession(lot);
+        if (lot == null) {
+            System.err.println("Cannot create auction session: Lot with ID " + lotID + " not found");
+            return null;
+        }
 
-        // Add to list
-        this.auctionList.add(auction);
+        AuctionSession auction = new AuctionSession(lot);
+        auction.setTitle(title);
+
+        // Save to database
+        int sessionId = auctionSessionRepository.save(auction, lotID);
+        if (sessionId > 0) {
+            System.out.println("Auction session created successfully with ID: " + sessionId);
+        }
 
         return auction;
     }
 
     public List<AuctionSession> getAllAuctionSessions() {
-        return new ArrayList<>(this.auctionList);
+        return auctionSessionRepository.findAll();
     }
 
     public List<AuctionSession> getAvailableAuctionSession() {
-        return this.auctionList.stream()
-                .filter(auctionSession -> {
-                    switch (auctionSession.getStatus()) {
-                        case SCHEDULED, STARTED -> {
-                            return true;
-                        }
-                        default -> {
-                            return false;
-                        }
-                    }
-                })
-                .toList();
+        // Get only SCHEDULED and STARTED sessions from database
+        return auctionSessionRepository.findByStatus(AuctionStatus.SCHEDULED, AuctionStatus.STARTED);
     }
 }
