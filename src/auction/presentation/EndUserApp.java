@@ -1,5 +1,6 @@
 package auction.presentation;
 
+import auction.domain.AuctionSession;
 import auction.usecases.UserLobbyServices;
 import auction.usecases.UserService;
 
@@ -7,14 +8,19 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.List;
 
 public class EndUserApp {
     // Fields
     private JFrame frame;
     private JPanel cardPanel;
     private CardLayout cardLayout;
+    private JPanel lobbyContentPanel;
 
     String usernameText = "";
+
+    // Services
+    private final UserLobbyServices userLobbyServices = UserLobbyServices.getInstance();
 
     // Modern Color Scheme
     private static final Color PRIMARY_COLOR = new Color(41, 128, 185);      // Professional Blue
@@ -129,10 +135,23 @@ public class EndUserApp {
         // Login Button
         JButton loginButton = createStyledButton("Log In", PRIMARY_COLOR, Color.WHITE);
         loginButton.addActionListener(e -> {
-            this.usernameText = username.getText();
-            if (!usernameText.trim().isEmpty()) {
-                UserService.logInUser(usernameText);
-                cardLayout.show(cardPanel, "LOBBY");
+            try {
+                this.usernameText = username.getText();
+                System.out.println("Login button clicked, username: " + usernameText);
+                if (!usernameText.trim().isEmpty()) {
+                    System.out.println("Username is valid, logging in...");
+                    UserService.logInUser(usernameText);
+                    System.out.println("Refreshing auction list...");
+                    refreshAuctionList();
+                    System.out.println("Showing lobby...");
+                    cardLayout.show(cardPanel, "LOBBY");
+                    System.out.println("Lobby shown successfully");
+                } else {
+                    System.out.println("Username is empty!");
+                }
+            } catch (Exception ex) {
+                System.err.println("Error during login:");
+                ex.printStackTrace();
             }
         });
 
@@ -143,10 +162,23 @@ public class EndUserApp {
                 BorderFactory.createEmptyBorder(10, 20, 10, 20)
         ));
         createButton.addActionListener(e -> {
-            this.usernameText = username.getText();
-            if (!usernameText.trim().isEmpty()) {
-                UserService.createUser(usernameText);
-                cardLayout.show(cardPanel, "LOBBY");
+            try {
+                this.usernameText = username.getText();
+                System.out.println("Create Account button clicked, username: " + usernameText);
+                if (!usernameText.trim().isEmpty()) {
+                    System.out.println("Username is valid, creating account...");
+                    UserService.createUser(usernameText);
+                    System.out.println("Refreshing auction list...");
+                    refreshAuctionList();
+                    System.out.println("Showing lobby...");
+                    cardLayout.show(cardPanel, "LOBBY");
+                    System.out.println("Lobby shown successfully");
+                } else {
+                    System.out.println("Username is empty!");
+                }
+            } catch (Exception ex) {
+                System.err.println("Error during account creation:");
+                ex.printStackTrace();
             }
         });
 
@@ -189,19 +221,15 @@ public class EndUserApp {
         headerPanel.add(welcomeLabel, BorderLayout.EAST);
 
         // Main content area - List of available auctions
-        JPanel contentPanel = new JPanel();
-        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
-        contentPanel.setBackground(BACKGROUND_COLOR);
+        lobbyContentPanel = new JPanel();
+        lobbyContentPanel.setLayout(new BoxLayout(lobbyContentPanel, BoxLayout.Y_AXIS));
+        lobbyContentPanel.setBackground(BACKGROUND_COLOR);
 
-        JScrollPane scrollPane = new JScrollPane(contentPanel);
+        JScrollPane scrollPane = new JScrollPane(lobbyContentPanel);
         scrollPane.setBorder(null);
         scrollPane.getViewport().setBackground(BACKGROUND_COLOR);
 
-        // Example auction cards (you can populate this dynamically later)
-        for (int i = 1; i <= 3; i++) {
-            contentPanel.add(createAuctionCard("Auction Room #" + i, "Live", i * 5 + " items"));
-            contentPanel.add(Box.createVerticalStrut(15));
-        }
+        // Note: Auction list will be loaded when user logs in
 
         // Bottom button panel
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 0));
@@ -402,6 +430,41 @@ public class EndUserApp {
         panel.add(contentPanel, BorderLayout.CENTER);
         panel.add(bottomPanel, BorderLayout.SOUTH);
         return panel;
+    }
+
+    private void refreshAuctionList() {
+        // Clear existing list
+        lobbyContentPanel.removeAll();
+
+        // Get real auction sessions from service
+        List<AuctionSession> auctions = userLobbyServices.getAuctionSessionList();
+
+        if (auctions.isEmpty()) {
+            // Show empty state message
+            JLabel emptyLabel = new JLabel("No auction sessions available");
+            emptyLabel.setFont(SUBHEADING_FONT);
+            emptyLabel.setForeground(TEXT_LIGHT);
+            emptyLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            lobbyContentPanel.add(Box.createVerticalStrut(50));
+            lobbyContentPanel.add(emptyLabel);
+        } else {
+            // Create cards for each auction session
+            for (int i = 0; i < auctions.size(); i++) {
+                AuctionSession auction = auctions.get(i);
+
+                // Get auction details
+                String name = auction.getTitle() != null ? auction.getTitle() : "Auction #" + (i + 1);
+                String status = auction.getStatus() != null ? auction.getStatus().toString() : "PENDING";
+                String items = auction.getCatalog() != null ? auction.getCatalog().size() + " items" : "0 items";
+
+                lobbyContentPanel.add(createAuctionCard(name, status, items));
+                lobbyContentPanel.add(Box.createVerticalStrut(15));
+            }
+        }
+
+        // Refresh the UI
+        lobbyContentPanel.revalidate();
+        lobbyContentPanel.repaint();
     }
 
     // Helper method to create styled buttons

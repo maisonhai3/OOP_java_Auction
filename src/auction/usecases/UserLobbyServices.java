@@ -23,6 +23,7 @@ public class UserLobbyServices {
         return INSTANCE;
     }
 
+    // Services
     public List<AuctionSession> getAuctionSessionList() {
         this.sessionList = staffLobbyService.getAvailableAuctionSession();
         return this.sessionList;

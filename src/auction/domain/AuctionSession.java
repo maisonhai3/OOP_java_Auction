@@ -26,10 +26,19 @@ public class AuctionSession {
 
     // Constructors
     public AuctionSession(Lot lot) {
+        status = AuctionStatus.SCHEDULED;
     }
 
     // Methods
+    public String getTitle() {
+        return this.title;
+    }
+
     public AuctionStatus getStatus() {
         return this.status;
+    }
+
+    public List<Lot> getCatalog() {
+        return this.catalog;
     }
 }
