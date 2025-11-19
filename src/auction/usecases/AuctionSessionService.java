@@ -8,12 +8,14 @@ import auction.infrastructure.AuctionSessionRepository;
 public class AuctionSessionService {
     // Fields
     private final AuctionSessionRepository auctionSessionRepository;
+    private final UserService userService;
 
     // Singleton
     private static final AuctionSessionService INSTANCE = new AuctionSessionService();
 
     private AuctionSessionService() {
         this.auctionSessionRepository = new AuctionSessionRepository();
+        this.userService = UserService.getInstance();
     }
 
     public static AuctionSessionService getInstance() {
@@ -56,13 +58,17 @@ public class AuctionSessionService {
     }
 
     public void placeBid(int auctionSessionId, float bidAmount, String bidderUserId) {
-        //TODO: Validate User existence - skipped for brevity
+        // Validate User existence
+        if (!userService.userExists(bidderUserId)) {
+            System.err.println("User not found: " + bidderUserId);
+            throw new IllegalArgumentException("User does not exist: " + bidderUserId);
+        }
 
         // Validate auction session
         AuctionSession auctionSession = auctionSessionRepository.findById(auctionSessionId);
         if (auctionSession == null) {
             System.err.println("Auction session not found with ID: " + auctionSessionId);
-            return;
+            throw new IllegalArgumentException("Auction session not found with ID: " + auctionSessionId);
         }
 
         // Main
