@@ -8,8 +8,15 @@ import java.beans.PropertyChangeListener;
 public class JoinAuctionSession {
     private final AuctionSessionRepository repo;
 
-    public JoinAuctionSession() {
+    // --- Singleton ---
+    private static final JoinAuctionSession INSTANCE = new JoinAuctionSession();
+
+    private JoinAuctionSession() {
         this.repo = new AuctionSessionRepository();
+    }
+
+    public static JoinAuctionSession getInstance() {
+        return INSTANCE;
     }
 
     public AuctionSession execute(int sessionId, PropertyChangeListener uiListener) {
