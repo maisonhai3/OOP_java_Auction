@@ -66,7 +66,7 @@ public class EndUserApp {
         // Add all your scenes as separate panels
         cardPanel.add(createWelcomePanel(), "LOGIN");
         cardPanel.add(createLobbyPanel(), "LOBBY");
-        cardPanel.add(createRoomPanel(), "ROOM");
+        cardPanel.add(createAuctionRoomPanel(), "ROOM");
 
         // Finalize
         frame.add(cardPanel);
@@ -311,7 +311,7 @@ public class EndUserApp {
         return card;
     }
 
-    private JPanel createRoomPanel() {
+    private JPanel createAuctionRoomPanel() {
         JPanel panel = new JPanel(new BorderLayout(15, 15));
         panel.setBackground(BACKGROUND_COLOR);
         panel.setBorder(BorderFactory.createEmptyBorder(25, 30, 25, 30));

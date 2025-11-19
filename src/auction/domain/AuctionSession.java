@@ -62,6 +62,14 @@ public class AuctionSession {
         return this.catalog;
     }
 
+    public Float getOpeningBid() {
+        return this.openingBid;
+    }
+
+    public Float getBidIncrement() {
+        return this.bidIncrement;
+    }
+
     // Setters
     public void setTitle(String title) {
         this.title = title;
@@ -73,5 +81,13 @@ public class AuctionSession {
 
     public void setCatalog(List<Lot> catalog) {
         this.catalog = catalog;
+    }
+
+    public void setOpeningBid(Float openingBid) {
+        this.openingBid = openingBid;
+    }
+
+    public void setBidIncrement(Float bidIncrement) {
+        this.bidIncrement = bidIncrement;
     }
 }

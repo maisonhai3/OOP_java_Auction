@@ -73,6 +73,8 @@ public class DatabaseConnection {
                             title TEXT,
                             lot_id INTEGER,
                             status TEXT DEFAULT 'SCHEDULED',
+                            opening_bid REAL,
+                            bid_increment REAL,
                             start_time TEXT,
                             end_time TEXT,
                             FOREIGN KEY (lot_id) REFERENCES lots(id)
