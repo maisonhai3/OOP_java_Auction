@@ -1,8 +1,8 @@
 package auction.infrastructure;
 
 import auction.domain.AuctionSession;
-import auction.domain.AuctionStatus;
 import auction.domain.Lot;
+import auction.domain.enums.AuctionStatus;
 
 import java.sql.*;
 import java.util.ArrayList;

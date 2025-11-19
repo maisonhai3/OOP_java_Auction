@@ -1,7 +1,7 @@
 package auction.usecases;
 
 import auction.domain.AuctionSession;
-import auction.domain.AuctionStatus;
+import auction.domain.enums.AuctionStatus;
 import auction.infrastructure.AuctionSessionRepository;
 
 import java.util.List;

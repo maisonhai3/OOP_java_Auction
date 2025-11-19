@@ -2,7 +2,7 @@ package auction.usecases;
 
 import auction.domain.SuperAdmin;
 import auction.domain.User;
-import auction.domain.UserType;
+import auction.domain.enums.UserType;
 
 public class UserService {
     // Singleton

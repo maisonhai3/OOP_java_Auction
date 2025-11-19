@@ -1,5 +1,10 @@
 package auction.domain;
 
+import auction.domain.enums.AuctionStatus;
+import auction.domain.enums.BIDDING_EVENT;
+
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.util.Date;
 import java.util.List;
 
@@ -27,6 +32,9 @@ public class AuctionSession {
     private Float hammerPrice;
     private Float buyerPremiumFee;
 
+    // Helpers
+    // Observer Pattern
+    private PropertyChangeSupport supporter;
 
     // Constructors
     public AuctionSession(Lot lot) {
@@ -42,6 +50,9 @@ public class AuctionSession {
                 priceRange.getMinPrice() : Float.valueOf(0.0f);
 
         this.bidIncrement = max(0, this.openingBid * 0.05f); // 5% of opening bid
+
+        // Observer Pattern
+        this.supporter = new PropertyChangeSupport(this);
     }
 
     // Constructor for repository (when loading from database)
@@ -98,5 +109,24 @@ public class AuctionSession {
 
     public void setBidIncrement(Float bidIncrement) {
         this.bidIncrement = bidIncrement;
+    }
+
+    //  --- Observer Pattern ---
+    public void addObserver(PropertyChangeListener pcl) {
+        this.supporter.addPropertyChangeListener(pcl);
+    }
+
+    public void removeObserver(PropertyChangeListener pcl) {
+        this.supporter.removePropertyChangeListener(pcl);
+    }
+
+    public void placeBid(Bid newBid) {
+        // Validate
+
+        // Main
+        Bid oldBid = this.currentBid;
+        this.currentBid = oldBid;
+
+        supporter.firePropertyChange(BIDDING_EVENT.BID_UPDATE.toString(), oldBid, newBid);
     }
 }

@@ -1,5 +1,7 @@
 package auction.domain;
 
+import auction.domain.enums.UserType;
+
 public class User {
     // Fields
     private final String username;

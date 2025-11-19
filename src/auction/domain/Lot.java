@@ -1,5 +1,7 @@
 package auction.domain;
 
+import auction.domain.enums.LotStatus;
+
 public class Lot {
     // Fields
     private Integer id; // Database ID

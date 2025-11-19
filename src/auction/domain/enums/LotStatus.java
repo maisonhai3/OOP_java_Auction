@@ -1,4 +1,4 @@
-package auction.domain;
+package auction.domain.enums;
 
 public enum LotStatus {
     UNSOLD,
