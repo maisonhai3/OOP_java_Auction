@@ -93,6 +93,7 @@ public class AuctionSessionRepository {
             List<AuctionSessionData> dataList = new ArrayList<>();
             while (rs.next()) {
                 AuctionSessionData data = new AuctionSessionData();
+                data.id = rs.getInt("id");
                 data.title = rs.getString("title");
                 data.lotId = rs.getInt("lot_id");
                 data.status = rs.getString("status");
@@ -122,6 +123,7 @@ public class AuctionSessionRepository {
 
     // Helper class to hold raw data from ResultSet
     private static class AuctionSessionData {
+        int id;
         String title;
         int lotId;
         String status;
@@ -163,6 +165,7 @@ public class AuctionSessionRepository {
             List<AuctionSessionData> dataList = new ArrayList<>();
             while (rs.next()) {
                 AuctionSessionData data = new AuctionSessionData();
+                data.id = rs.getInt("id");
                 data.title = rs.getString("title");
                 data.lotId = rs.getInt("lot_id");
                 data.status = rs.getString("status");
@@ -237,6 +240,10 @@ public class AuctionSessionRepository {
     private AuctionSession mapResultSetToAuctionSession(ResultSet rs) throws SQLException {
         AuctionSession session = new AuctionSession();
 
+        // Set ID
+        int id = rs.getInt("id");
+        session.setId(id);
+
         // Set title
         String title = rs.getString("title");
         session.setTitle(title);
@@ -271,6 +278,9 @@ public class AuctionSessionRepository {
      */
     private AuctionSession mapDataToAuctionSession(AuctionSessionData data) {
         AuctionSession session = new AuctionSession();
+
+        // Set ID
+        session.setId(data.id);
 
         // Set title
         session.setTitle(data.title);

@@ -7,6 +7,7 @@ import static java.lang.Math.max;
 
 public class AuctionSession {
     // Fields
+    private Integer id; // Database ID
     private String auctionId;
 
     private String title;
@@ -50,6 +51,14 @@ public class AuctionSession {
     }
 
     // Getters
+    public Integer getId() {
+        return this.id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
     public String getTitle() {
         return this.title;
     }

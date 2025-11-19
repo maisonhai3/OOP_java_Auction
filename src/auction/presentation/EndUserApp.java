@@ -1,6 +1,8 @@
 package auction.presentation;
 
 import auction.domain.AuctionSession;
+import auction.usecases.AuctionSessionService;
+import auction.usecases.LotInfoDTO;
 import auction.usecases.UserLobbyServices;
 import auction.usecases.UserService;
 
@@ -16,11 +18,20 @@ public class EndUserApp {
     private JPanel cardPanel;
     private CardLayout cardLayout;
     private JPanel lobbyContentPanel;
+    private JPanel auctionRoomPanel;
+
+    // Auction room dynamic labels
+    private JLabel lotNameLabel;
+    private JLabel estimateRangeLabel;
+    private JLabel openingBidLabel;
+    private JLabel bidIncrementLabel;
 
     String usernameText = "";
+    int currentAuctionSessionId = -1; // Track which auction user joined
 
     // Services
     private final UserLobbyServices userLobbyServices = UserLobbyServices.getInstance();
+    private final AuctionSessionService auctionSessionService = AuctionSessionService.getInstance();
 
     // Modern Color Scheme
     private static final Color PRIMARY_COLOR = new Color(41, 128, 185);      // Professional Blue
@@ -261,7 +272,7 @@ public class EndUserApp {
         return panel;
     }
 
-    private JPanel createAuctionCard(String name, String status, String items) {
+    private JPanel createAuctionCard(AuctionSession auction, String name, String status, String items) {
         JPanel card = new JPanel(new BorderLayout(15, 10));
         card.setBackground(CARD_BACKGROUND);
         card.setBorder(BorderFactory.createCompoundBorder(
@@ -291,6 +302,9 @@ public class EndUserApp {
         JButton joinBtn = createStyledButton("Join", PRIMARY_COLOR, Color.WHITE);
         joinBtn.setPreferredSize(new Dimension(100, 35));
         joinBtn.addActionListener(e -> {
+            // Set current auction session ID and refresh the room panel
+            currentAuctionSessionId = auction.getId();
+            refreshAuctionRoomPanel();
             cardLayout.show(cardPanel, "ROOM");
         });
 
@@ -353,21 +367,39 @@ public class EndUserApp {
         lotTitle.setForeground(TEXT_COLOR);
         lotTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel lotName = new JLabel("Vintage Watch Collection");
-        lotName.setFont(HEADING_FONT);
-        lotName.setForeground(PRIMARY_COLOR);
-        lotName.setAlignmentX(Component.LEFT_ALIGNMENT);
+        // Dynamic lot name label
+        lotNameLabel = new JLabel("Loading...");
+        lotNameLabel.setFont(HEADING_FONT);
+        lotNameLabel.setForeground(PRIMARY_COLOR);
+        lotNameLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel currentBid = new JLabel("Current Bid: $1,250");
-        currentBid.setFont(SUBHEADING_FONT);
-        currentBid.setForeground(TEXT_COLOR);
-        currentBid.setAlignmentX(Component.LEFT_ALIGNMENT);
+        // Dynamic estimate range label
+        estimateRangeLabel = new JLabel("Estimate: Loading...");
+        estimateRangeLabel.setFont(LABEL_FONT);
+        estimateRangeLabel.setForeground(TEXT_LIGHT);
+        estimateRangeLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        // Dynamic opening bid label
+        openingBidLabel = new JLabel("Opening Bid: Loading...");
+        openingBidLabel.setFont(SUBHEADING_FONT);
+        openingBidLabel.setForeground(TEXT_COLOR);
+        openingBidLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        // Dynamic bid increment label
+        bidIncrementLabel = new JLabel("Bid Increment: Loading...");
+        bidIncrementLabel.setFont(LABEL_FONT);
+        bidIncrementLabel.setForeground(TEXT_LIGHT);
+        bidIncrementLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         lotPanel.add(lotTitle);
         lotPanel.add(Box.createVerticalStrut(15));
-        lotPanel.add(lotName);
+        lotPanel.add(lotNameLabel);
         lotPanel.add(Box.createVerticalStrut(10));
-        lotPanel.add(currentBid);
+        lotPanel.add(estimateRangeLabel);
+        lotPanel.add(Box.createVerticalStrut(8));
+        lotPanel.add(openingBidLabel);
+        lotPanel.add(Box.createVerticalStrut(8));
+        lotPanel.add(bidIncrementLabel);
         lotPanel.add(Box.createVerticalGlue());
 
         // Right side - Bidding Panel
@@ -457,7 +489,7 @@ public class EndUserApp {
                 String status = auction.getStatus() != null ? auction.getStatus().toString() : "PENDING";
                 String items = auction.getCatalog() != null ? auction.getCatalog().size() + " items" : "0 items";
 
-                lobbyContentPanel.add(createAuctionCard(name, status, items));
+                lobbyContentPanel.add(createAuctionCard(auction, name, status, items));
                 lobbyContentPanel.add(Box.createVerticalStrut(15));
             }
         }
@@ -465,6 +497,52 @@ public class EndUserApp {
         // Refresh the UI
         lobbyContentPanel.revalidate();
         lobbyContentPanel.repaint();
+    }
+
+    private void refreshAuctionRoomPanel() {
+        // Check if an auction session has been selected
+        if (currentAuctionSessionId == -1) {
+            lotNameLabel.setText("No auction selected");
+            estimateRangeLabel.setText("");
+            openingBidLabel.setText("");
+            bidIncrementLabel.setText("");
+            return;
+        }
+
+        // Fetch lot information using the service
+        LotInfoDTO lotInfo = auctionSessionService.getLotInfo(currentAuctionSessionId);
+
+        if (lotInfo == null) {
+            lotNameLabel.setText("Error loading lot information");
+            estimateRangeLabel.setText("");
+            openingBidLabel.setText("");
+            bidIncrementLabel.setText("");
+            return;
+        }
+
+        // Update labels with real data
+        lotNameLabel.setText(lotInfo.getLotName());
+
+        // Display estimate range
+        if (lotInfo.getEstimateRange() != null && lotInfo.getEstimateRange().hasValue()) {
+            estimateRangeLabel.setText("Estimate: " + lotInfo.getEstimateRange().toDisplayString());
+        } else {
+            estimateRangeLabel.setText("Estimate: No estimate available");
+        }
+
+        // Display opening bid
+        if (lotInfo.getOpeningBid() != null) {
+            openingBidLabel.setText(String.format("Opening Bid: $%.2f", lotInfo.getOpeningBid()));
+        } else {
+            openingBidLabel.setText("Opening Bid: Not set");
+        }
+
+        // Display bid increment
+        if (lotInfo.getBidIncrement() != null) {
+            bidIncrementLabel.setText(String.format("Bid Increment: $%.2f", lotInfo.getBidIncrement()));
+        } else {
+            bidIncrementLabel.setText("Bid Increment: Not set");
+        }
     }
 
     // Helper method to create styled buttons
