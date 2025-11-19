@@ -59,6 +59,9 @@ public class AuctionSession {
     public AuctionSession() {
         this.catalog = new java.util.ArrayList<>();
         this.status = AuctionStatus.SCHEDULED;
+
+        // Observer Pattern
+        this.supporter = new PropertyChangeSupport(this);
     }
 
     // Getters
@@ -122,6 +125,15 @@ public class AuctionSession {
 
     public void placeBid(Bid newBid) {
         // Validate
+        if (newBid == null) {
+            throw new IllegalArgumentException("Bid cannot be null");
+        }
+        if (currentBid != null && newBid.getAmount() <= currentBid.getAmount()) {
+            throw new IllegalArgumentException("Bid must be higher than current bid");
+        }
+        if (newBid.getAmount() < openingBid) {
+            throw new IllegalArgumentException("Bid must be at least the opening bid");
+        }
 
         // Main
         Bid oldBid = this.currentBid;
