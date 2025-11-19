@@ -2,6 +2,7 @@ package auction.presentation;
 
 import auction.domain.AuctionSession;
 import auction.domain.Bid;
+import auction.domain.enums.AuctionStatus;
 import auction.domain.enums.BIDDING_EVENT;
 import auction.infrastructure.AuctionSessionRepository;
 import auction.usecases.AuctioneerLobbyService;
@@ -546,8 +547,18 @@ public class AuctioneerApp implements PropertyChangeListener {
         // Stop all timers
         stopAllTimers();
 
-        // TODO: Update auction status to CLOSED and persist to database
-        // TODO: Record the winning bid and winner
+        // Close the auction - this will:
+        // 1. Change status to CLOSED
+        // 2. Fire SOLD event to all observers (including bidders)
+        if (currentAuctionSession != null) {
+            currentAuctionSession.closeAuction();
+
+            // Persist the status change to database
+            AuctionSessionRepository repository = new AuctionSessionRepository();
+            repository.updateStatus(currentAuctionSessionId, AuctionStatus.CLOSED);
+
+            System.out.println("Auction closed and status persisted to database");
+        }
 
         // Show sold message after 2 seconds
         javax.swing.Timer soldTimer = new javax.swing.Timer(2000, e -> {

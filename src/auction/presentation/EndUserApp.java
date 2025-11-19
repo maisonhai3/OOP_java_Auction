@@ -917,6 +917,41 @@ public class EndUserApp implements PropertyChangeListener {
                         "Auction Started",
                         JOptionPane.INFORMATION_MESSAGE);
             });
+        } else if (BIDDING_EVENT.SOLD.toString().equals(eventName)) {
+            // Auction sold event (GONE!)
+            Bid winningBid = (Bid) evt.getNewValue();
+            SwingUtilities.invokeLater(() -> {
+                System.out.println("🔨 AUCTION SOLD!");
+
+                // Update status to CLOSED
+                if (currentAuctionSession != null) {
+                    currentAuctionSession.setStatus(auction.domain.enums.AuctionStatus.CLOSED);
+                    updateAuctionStatus();
+                }
+
+                // Display winning information
+                String message;
+                if (winningBid != null) {
+                    String winnerName = winningBid.getBidder().toString();
+                    Float winningPrice = winningBid.getAmount();
+                    message = String.format(
+                            "AUCTION SOLD!\n\n" +
+                                    "Winning Bid: $%.2f\n" +
+                                    "Winner: %s\n\n" +
+                                    "%s",
+                            winningPrice,
+                            winnerName,
+                            winnerName.equals(usernameText) ? "Congratulations! You won!" : "Better luck next time!"
+                    );
+                } else {
+                    message = "AUCTION SOLD!\n\nNo bids were placed.";
+                }
+
+                JOptionPane.showMessageDialog(frame,
+                        message,
+                        "Auction Complete",
+                        JOptionPane.INFORMATION_MESSAGE);
+            });
         }
     }
 }

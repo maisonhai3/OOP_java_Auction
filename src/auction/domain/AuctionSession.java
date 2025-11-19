@@ -149,6 +149,24 @@ public class AuctionSession {
         supporter.firePropertyChange(BIDDING_EVENT.AUCTION_STARTED.toString(), oldStatus, AuctionStatus.STARTED);
     }
 
+    public void closeAuction() {
+        // Validate
+        if (this.status != AuctionStatus.STARTED && this.status != AuctionStatus.IN_FAIR_WARNING) {
+            throw new IllegalStateException("Auction can only be closed from STARTED or IN_FAIR_WARNING status. Current status: " + this.status);
+        }
+
+        // Change status
+        AuctionStatus oldStatus = this.status;
+        this.status = AuctionStatus.CLOSED;
+        this.endTime = new Date();
+
+        // Set hammer price to current price
+        this.hammerPrice = this.currentPrice;
+
+        // Notify all observers with the winning bid information (SOLD event)
+        supporter.firePropertyChange(BIDDING_EVENT.SOLD.toString(), oldStatus, this.currentBid);
+    }
+
     public void placeBid(Bid newBid) {
         // Validate
         if (newBid == null) {
