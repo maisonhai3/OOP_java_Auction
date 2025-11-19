@@ -27,10 +27,17 @@ public class AuctioneerApp implements PropertyChangeListener {
     private JLabel statusLabel;
     private JLabel currentPriceLabel;
     private JLabel currentBidderLabel;
+    private JLabel countdownLabel;
 
     // Current auction tracking
     private int currentAuctionSessionId = -1;
     private AuctionSession currentAuctionSession;
+
+    // Countdown timers
+    private javax.swing.Timer noBidTimer;  // 5-second timer waiting for bids
+    private javax.swing.Timer countdownTimer;  // Timer for countdown display
+    private int countdownPhase = 0;  // 0=waiting, 1=first Going, 2=second Going, 3=Gone
+    private int countdownValue = 3;  // Current countdown number
 
     // Services
     private final AuctioneerLobbyService auctioneerLobbyService = AuctioneerLobbyService.getInstance();
@@ -220,11 +227,19 @@ public class AuctioneerApp implements PropertyChangeListener {
         currentBidderLabel.setForeground(TEXT_LIGHT);
         currentBidderLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
+        // Initialize countdown label
+        countdownLabel = new JLabel("");
+        countdownLabel.setFont(new Font("Segoe UI", Font.BOLD, 48));
+        countdownLabel.setForeground(ORANGE_COLOR);
+        countdownLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
         contentPanel.add(bidSectionTitle);
         contentPanel.add(Box.createVerticalStrut(10));
         contentPanel.add(currentPriceLabel);
         contentPanel.add(Box.createVerticalStrut(5));
         contentPanel.add(currentBidderLabel);
+        contentPanel.add(Box.createVerticalStrut(30));
+        contentPanel.add(countdownLabel);
         contentPanel.add(Box.createVerticalGlue());
 
         // Bottom Panel - Action buttons
@@ -234,6 +249,9 @@ public class AuctioneerApp implements PropertyChangeListener {
         JButton backButton = createStyledButton("Back to Lobby", PRIMARY_COLOR, Color.WHITE);
         backButton.setPreferredSize(new Dimension(180, 45));
         backButton.addActionListener(e -> {
+            // Stop all countdown timers
+            stopAllTimers();
+
             // Unregister observer when leaving
             if (currentAuctionSession != null) {
                 currentAuctionSession.removeObserver(this);
@@ -430,6 +448,136 @@ public class AuctioneerApp implements PropertyChangeListener {
         System.out.println("Auction room panel refreshed");
     }
 
+    // --- Countdown Logic ---
+
+    /**
+     * Start the 5-second timer waiting for new bids.
+     * If no bids come in, start the countdown sequence.
+     */
+    private void startNoBidTimer() {
+        // Cancel existing timers
+        stopAllTimers();
+
+        // Start 5-second timer
+        noBidTimer = new javax.swing.Timer(5000, e -> {
+            // No bid in 5 seconds, start countdown
+            System.out.println("No bid in 5 seconds, starting countdown...");
+            startCountdownSequence();
+        });
+        noBidTimer.setRepeats(false);
+        noBidTimer.start();
+
+        // Clear countdown display
+        countdownLabel.setText("");
+    }
+
+    /**
+     * Reset the timer when a new bid comes in.
+     */
+    private void resetNoBidTimer() {
+        if (noBidTimer != null && noBidTimer.isRunning()) {
+            noBidTimer.restart();
+        } else {
+            startNoBidTimer();
+        }
+
+        // Clear countdown display
+        countdownLabel.setText("");
+        countdownPhase = 0;
+    }
+
+    /**
+     * Start the countdown sequence: Going (3,2,1) -> Going (3,2,1) -> GONE!
+     */
+    private void startCountdownSequence() {
+        countdownPhase = 1;
+        countdownValue = 3;
+
+        // Display "Going..."
+        countdownLabel.setText("Going " + countdownPhase + "st ...");
+        countdownLabel.setForeground(ORANGE_COLOR);
+
+        // Wait 1 second, then start countdown
+        javax.swing.Timer delayTimer = new javax.swing.Timer(1000, e -> {
+            startCountdown();
+        });
+        delayTimer.setRepeats(false);
+        delayTimer.start();
+    }
+
+    /**
+     * Display the countdown numbers.
+     */
+    private void startCountdown() {
+        countdownTimer = new javax.swing.Timer(1000, e -> {
+            if (countdownValue > 0) {
+                // Display countdown number
+                countdownLabel.setText(String.valueOf(countdownValue));
+                countdownLabel.setForeground(ORANGE_COLOR);
+                countdownValue--;
+            } else {
+                // Countdown finished for this phase
+                if (countdownPhase == 1) {
+                    // First "Going" done, start second "Going"
+                    countdownPhase = 2;
+                    countdownValue = 3;
+                    countdownLabel.setText("Going " + countdownPhase + "nd ...");
+                    countdownLabel.setForeground(ORANGE_COLOR);
+                } else if (countdownPhase == 2) {
+                    // Second "Going" done, show "GONE!"
+                    countdownPhase = 3;
+                    countdownTimer.stop();
+                    auctionGone();
+                }
+            }
+        });
+        countdownTimer.start();
+    }
+
+    /**
+     * Called when auction is sold (GONE!).
+     */
+    private void auctionGone() {
+        countdownLabel.setText("GONE!");
+        countdownLabel.setForeground(ACCENT_COLOR);
+
+        System.out.println("🔨 AUCTION SOLD!");
+
+        // Stop all timers
+        stopAllTimers();
+
+        // TODO: Update auction status to CLOSED and persist to database
+        // TODO: Record the winning bid and winner
+
+        // Show sold message after 2 seconds
+        javax.swing.Timer soldTimer = new javax.swing.Timer(2000, e -> {
+            JOptionPane.showMessageDialog(frame,
+                    "Auction SOLD!\n" +
+                            "Winning Bid: " + currentPriceLabel.getText() + "\n" +
+                            "Winner: " + currentBidderLabel.getText(),
+                    "Auction Complete",
+                    JOptionPane.INFORMATION_MESSAGE);
+
+            countdownLabel.setText("");
+        });
+        soldTimer.setRepeats(false);
+        soldTimer.start();
+    }
+
+    /**
+     * Stop all countdown timers.
+     */
+    private void stopAllTimers() {
+        if (noBidTimer != null) {
+            noBidTimer.stop();
+        }
+        if (countdownTimer != null) {
+            countdownTimer.stop();
+        }
+        countdownPhase = 0;
+        countdownValue = 3;
+    }
+
     // Helper method to create styled buttons
     private JButton createStyledButton(String text, Color bgColor, Color fgColor) {
         JButton button = new JButton(text);
@@ -469,6 +617,9 @@ public class AuctioneerApp implements PropertyChangeListener {
                         // Update bidder label
                         currentBidderLabel.setText("Bidder: " + bidderName);
                         currentBidderLabel.setForeground(TEXT_COLOR);
+
+                        // Reset/start the countdown timer
+                        resetNoBidTimer();
                     }
                 });
             }
@@ -481,6 +632,10 @@ public class AuctioneerApp implements PropertyChangeListener {
                 if (currentAuctionSession != null) {
                     statusLabel.setText("Status: " + currentAuctionSession.getStatus());
                     statusLabel.setForeground(ACCENT_COLOR);
+
+                    // Clear any countdown
+                    stopAllTimers();
+                    countdownLabel.setText("");
                 }
             });
         }
