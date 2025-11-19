@@ -29,6 +29,8 @@ public class AuctionSession {
     // Going once, going twice, sold to...
     private Bid bid;
     private Bid currentBid;
+    private Float currentPrice = 0f;
+
     private Float hammerPrice;
     private Float buyerPremiumFee;
 
@@ -142,6 +144,7 @@ public class AuctionSession {
         // Main
         Bid oldBid = this.currentBid;
         this.currentBid = newBid;
+        this.currentPrice = this.currentPrice + newBid.getAmount();
 
         supporter.firePropertyChange(BIDDING_EVENT.BID_UPDATE.toString(), oldBid, newBid);
     }
