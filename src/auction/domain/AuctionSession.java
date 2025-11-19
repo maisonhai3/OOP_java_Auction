@@ -89,6 +89,10 @@ public class AuctionSession {
         return this.openingBid;
     }
 
+    public Bid getCurrentBid() {
+        return this.currentBid;
+    }
+
     public Float getBidIncrement() {
         return this.bidIncrement;
     }

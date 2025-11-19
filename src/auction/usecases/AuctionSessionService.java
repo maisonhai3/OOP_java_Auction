@@ -57,7 +57,7 @@ public class AuctionSessionService {
         );
     }
 
-    public void placeBid(int auctionSessionId, float bidAmount, String bidderUserId) {
+    public void placeBidCustomAmount(int auctionSessionId, float bidAmount, String bidderUserId) {
         // Validate User existence
         if (!userService.userExists(bidderUserId)) {
             System.err.println("User not found: " + bidderUserId);
@@ -75,5 +75,31 @@ public class AuctionSessionService {
         Bid bid = new Bid(bidAmount, bidderUserId);
         auctionSession.placeBid(bid);
         System.out.println("Placing bid of " + bidAmount + " in auction session ID: " + auctionSessionId);
+    }
+
+    public void placeBidIncremental(int auctionSessionId, String bidderUserId) {
+        // Validate User existence
+        if (!userService.userExists(bidderUserId)) {
+            System.err.println("User not found: " + bidderUserId);
+            throw new IllegalArgumentException("User does not exist: " + bidderUserId);
+        }
+
+        // Validate auction session
+        AuctionSession auctionSession = auctionSessionRepository.findById(auctionSessionId);
+        if (auctionSession == null) {
+            System.err.println("Auction session not found with ID: " + auctionSessionId);
+            throw new IllegalArgumentException("Auction session not found with ID: " + auctionSessionId);
+        }
+
+        // Calculate new bid amount
+        Float currentBidAmount = (auctionSession.getCurrentBid() != null)
+                ? auctionSession.getCurrentBid().getAmount()
+                : 0f;
+        Float newBidAmount = Math.max(currentBidAmount + auctionSession.getBidIncrement(), auctionSession.getOpeningBid());
+
+        // Main
+        Bid bid = new Bid(newBidAmount, bidderUserId);
+        auctionSession.placeBid(bid);
+        System.out.println("Placing incremental bid of " + newBidAmount + " in auction session ID: " + auctionSessionId);
     }
 }
