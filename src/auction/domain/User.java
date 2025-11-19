@@ -1,12 +1,12 @@
 package auction.domain;
 
-import auction.domain.enums.UserType;
+import auction.domain.enums.USER_TYPES;
 
 public class User {
     // Fields
     private String userId;
     private final String username;
-    private UserType userType;
+    private USER_TYPES userType;
 
     // Constructors
     public User(String username) {
@@ -15,11 +15,11 @@ public class User {
     // TODO: adapt constructor to use userId when implementing user management
 
 
-    public UserType getUserType() {
+    public USER_TYPES getUserType() {
         return userType;
     }
 
-    public void setUserType(UserType userType) {
+    public void setUserType(USER_TYPES userType) {
         this.userType = userType;
     }
 

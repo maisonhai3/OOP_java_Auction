@@ -1,6 +1,6 @@
 package auction.domain.enums;
 
-public enum UserType {
+public enum USER_TYPES {
     BIDDER,
     AUCTIONEER,
     MANAGER

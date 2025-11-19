@@ -2,7 +2,7 @@ package auction.usecases;
 
 import auction.domain.SuperAdmin;
 import auction.domain.User;
-import auction.domain.enums.UserType;
+import auction.domain.enums.USER_TYPES;
 
 public class UserService {
     // Singleton
@@ -29,7 +29,7 @@ public class UserService {
         return new User(username);
     }
 
-    public Boolean changeUserType(User user, UserType targetType) {
+    public Boolean changeUserType(User user, USER_TYPES targetType) {
         return true;
     }
 }
