@@ -125,7 +125,7 @@ public class AuctionSession {
 
         // Main
         Bid oldBid = this.currentBid;
-        this.currentBid = oldBid;
+        this.currentBid = newBid;
 
         supporter.firePropertyChange(BIDDING_EVENT.BID_UPDATE.toString(), oldBid, newBid);
     }
