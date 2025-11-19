@@ -27,16 +27,21 @@ public class EndUserApp implements PropertyChangeListener {
     private JLabel openingBidLabel;
     private JLabel bidIncrementLabel;
     private JLabel currentPriceLabel;
+    private JLabel auctionStatusLabel; // Header status label
 
     String usernameText = "";
     int currentAuctionSessionId = -1; // Track which auction user joined
     private AuctionSession currentAuctionSession; // Track current auction for observer pattern
+
+    // Background polling for cross-process updates
+    private javax.swing.Timer statusPollingTimer;
 
     // Services
     private final UserLobbyServices userLobbyServices = UserLobbyServices.getInstance();
     private final AuctionSessionService auctionSessionService = AuctionSessionService.getInstance();
     private final JoinAuctionSession joinAuctionSession = JoinAuctionSession.getInstance();
     private final UserService userService = UserService.getInstance();
+    private final auction.infrastructure.AuctionSessionRepository auctionSessionRepository = new auction.infrastructure.AuctionSessionRepository();
 
     // Modern Color Scheme
     private static final Color PRIMARY_COLOR = new Color(41, 128, 185);      // Professional Blue
@@ -316,6 +321,7 @@ public class EndUserApp implements PropertyChangeListener {
             if (currentAuctionSession != null) {
                 System.out.println("Successfully joined auction and registered as observer");
                 refreshAuctionRoomPanel();
+                startStatusPolling(); // Start polling for cross-process updates
                 cardLayout.show(cardPanel, "ROOM");
             } else {
                 JOptionPane.showMessageDialog(frame,
@@ -359,12 +365,13 @@ public class EndUserApp implements PropertyChangeListener {
         title.setFont(HEADING_FONT);
         title.setForeground(TEXT_COLOR);
 
-        JLabel statusLabel = new JLabel("LIVE - 12 Bidders");
-        statusLabel.setFont(LABEL_FONT);
-        statusLabel.setForeground(ACCENT_COLOR);
+        // Initialize auction status label
+        auctionStatusLabel = new JLabel("Loading...");
+        auctionStatusLabel.setFont(LABEL_FONT);
+        auctionStatusLabel.setForeground(TEXT_LIGHT);
 
         headerPanel.add(title, BorderLayout.WEST);
-        headerPanel.add(statusLabel, BorderLayout.EAST);
+        headerPanel.add(auctionStatusLabel, BorderLayout.EAST);
 
         // Main content area - Split into two sections
         JPanel contentPanel = new JPanel(new GridLayout(1, 2, 20, 0));
@@ -598,7 +605,8 @@ public class EndUserApp implements PropertyChangeListener {
         JButton backButton = createStyledButton("Back to Lobby", PRIMARY_COLOR, Color.WHITE);
         backButton.setPreferredSize(new Dimension(200, 45));
         backButton.addActionListener(e -> {
-            // Unregister observer when leaving auction
+            // Stop polling and unregister observer when leaving auction
+            stopStatusPolling();
             if (currentAuctionSession != null) {
                 currentAuctionSession.removeObserver(this);
                 currentAuctionSession = null;
@@ -615,7 +623,8 @@ public class EndUserApp implements PropertyChangeListener {
                 BorderFactory.createEmptyBorder(10, 20, 10, 20)
         ));
         leaveButton.addActionListener(e -> {
-            // Unregister observer when leaving auction
+            // Stop polling and unregister observer when leaving auction
+            stopStatusPolling();
             if (currentAuctionSession != null) {
                 currentAuctionSession.removeObserver(this);
                 currentAuctionSession = null;
@@ -725,6 +734,50 @@ public class EndUserApp implements PropertyChangeListener {
             currentPriceLabel.setText("No bids yet");
             currentPriceLabel.setForeground(TEXT_LIGHT);
         }
+
+        // Update auction status label
+        updateAuctionStatus();
+    }
+
+    /**
+     * Updates the auction status label with appropriate color coding.
+     * Color codes:
+     * - SCHEDULED: Gray
+     * - STARTED: Green
+     * - IN_FAIR_WARNING: Red
+     * - CLOSED: Black
+     */
+    private void updateAuctionStatus() {
+        if (currentAuctionSession == null) {
+            auctionStatusLabel.setText("Loading...");
+            auctionStatusLabel.setForeground(TEXT_LIGHT);
+            return;
+        }
+
+        String statusText = currentAuctionSession.getStatus().toString();
+
+        switch (currentAuctionSession.getStatus()) {
+            case SCHEDULED:
+                auctionStatusLabel.setText("Status: " + statusText);
+                auctionStatusLabel.setForeground(TEXT_LIGHT); // Gray
+                break;
+            case STARTED:
+                auctionStatusLabel.setText("Status: " + statusText);
+                auctionStatusLabel.setForeground(ACCENT_COLOR); // Green
+                break;
+            case IN_FAIR_WARNING:
+                auctionStatusLabel.setText("Status: " + statusText);
+                auctionStatusLabel.setForeground(DANGER_COLOR); // Red
+                break;
+            case CLOSED:
+                auctionStatusLabel.setText("Status: " + statusText);
+                auctionStatusLabel.setForeground(Color.BLACK); // Black
+                break;
+            default:
+                auctionStatusLabel.setText("Status: " + statusText);
+                auctionStatusLabel.setForeground(TEXT_LIGHT);
+                break;
+        }
     }
 
     // Helper method to create styled buttons
@@ -755,6 +808,71 @@ public class EndUserApp implements PropertyChangeListener {
         });
 
         return button;
+    }
+
+    // --- Background Polling for Cross-Process Updates ---
+
+    /**
+     * Start polling the database for status changes (for cross-process updates).
+     * Called when user joins an auction.
+     */
+    private void startStatusPolling() {
+        if (statusPollingTimer != null && statusPollingTimer.isRunning()) {
+            statusPollingTimer.stop();
+        }
+
+        // Poll every 2 seconds
+        statusPollingTimer = new javax.swing.Timer(2000, e -> checkForStatusChanges());
+        statusPollingTimer.start();
+        System.out.println("Started status polling for auction " + currentAuctionSessionId);
+    }
+
+    /**
+     * Stop polling when user leaves the auction.
+     */
+    private void stopStatusPolling() {
+        if (statusPollingTimer != null && statusPollingTimer.isRunning()) {
+            statusPollingTimer.stop();
+            System.out.println("Stopped status polling");
+        }
+    }
+
+    /**
+     * Check the database for status changes.
+     * If status changed, update the currentAuctionSession and UI.
+     */
+    private void checkForStatusChanges() {
+        if (currentAuctionSessionId == -1 || currentAuctionSession == null) {
+            return;
+        }
+
+        try {
+            // Fetch latest status from database
+            AuctionSession latestSession = auctionSessionRepository.findById(currentAuctionSessionId);
+
+            if (latestSession != null && latestSession.getStatus() != currentAuctionSession.getStatus()) {
+                // Status has changed!
+                System.out.println("Status change detected: " + currentAuctionSession.getStatus() + " -> " + latestSession.getStatus());
+
+                // Update the current session status
+                currentAuctionSession.setStatus(latestSession.getStatus());
+
+                // Update UI on Swing thread
+                SwingUtilities.invokeLater(() -> {
+                    updateAuctionStatus();
+
+                    // Show notification if auction started
+                    if (latestSession.getStatus() == auction.domain.enums.AuctionStatus.STARTED) {
+                        JOptionPane.showMessageDialog(frame,
+                                "The auction has started! You can now place bids.",
+                                "Auction Started",
+                                JOptionPane.INFORMATION_MESSAGE);
+                    }
+                });
+            }
+        } catch (Exception ex) {
+            System.err.println("Error checking for status changes: " + ex.getMessage());
+        }
     }
 
     // --- Observer Pattern Implementation ---
@@ -790,13 +908,14 @@ public class EndUserApp implements PropertyChangeListener {
             SwingUtilities.invokeLater(() -> {
                 System.out.println("🔔 AUCTION STARTED: Bidding is now open!");
 
+                // Update the auction status label with new color
+                updateAuctionStatus();
+
                 // Show notification to user
                 JOptionPane.showMessageDialog(frame,
                         "The auction has started! You can now place bids.",
                         "Auction Started",
                         JOptionPane.INFORMATION_MESSAGE);
-
-                // Optional: Enable bid buttons or update UI status indicator
             });
         }
     }

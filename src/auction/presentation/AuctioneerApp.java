@@ -3,6 +3,7 @@ package auction.presentation;
 import auction.domain.AuctionSession;
 import auction.domain.Bid;
 import auction.domain.enums.BIDDING_EVENT;
+import auction.infrastructure.AuctionSessionRepository;
 import auction.usecases.AuctioneerLobbyService;
 import auction.usecases.JoinAuctionSession;
 import auction.usecases.StartAuctionSession;
@@ -232,13 +233,32 @@ public class AuctioneerApp implements PropertyChangeListener {
         startButton.setPreferredSize(new Dimension(80, 35));
         startButton.addActionListener(e -> {
             try {
-                // Start the auction
-                AuctionSession startedSession = startAuctionSession.execute(auction.getId());
+                // Join the auction first to get the observed instance (if not already joined)
+                if (currentAuctionSession == null || currentAuctionSession.getId() != auction.getId()) {
+                    currentAuctionSessionId = auction.getId();
+                    currentAuctionSession = joinAuctionSession.execute(currentAuctionSessionId, this);
+                }
+
+                if (currentAuctionSession == null) {
+                    JOptionPane.showMessageDialog(frame,
+                            "Failed to load auction session",
+                            "Error",
+                            JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                // Start the auction DIRECTLY on the observed instance
+                // This ensures all observers receive the AUCTION_STARTED event
+                currentAuctionSession.startAuction();
+
+                // Persist the status change to database
+                AuctionSessionRepository repository = new AuctionSessionRepository();
+                repository.updateStatus(auction.getId(), currentAuctionSession.getStatus());
 
                 JOptionPane.showMessageDialog(frame,
                         "Auction started successfully!\n" +
                                 "Title: " + title + "\n" +
-                                "Status: " + startedSession.getStatus(),
+                                "Status: " + currentAuctionSession.getStatus(),
                         "Auction Started",
                         JOptionPane.INFORMATION_MESSAGE);
 
