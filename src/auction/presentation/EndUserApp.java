@@ -1,18 +1,19 @@
 package auction.presentation;
 
 import auction.domain.AuctionSession;
-import auction.usecases.AuctionSessionService;
-import auction.usecases.LotInfoDTO;
-import auction.usecases.UserLobbyServices;
-import auction.usecases.UserService;
+import auction.domain.Bid;
+import auction.domain.enums.BIDDING_EVENT;
+import auction.usecases.*;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.List;
 
-public class EndUserApp {
+public class EndUserApp implements PropertyChangeListener {
     // Fields
     private JFrame frame;
     private JPanel cardPanel;
@@ -25,13 +26,16 @@ public class EndUserApp {
     private JLabel estimateRangeLabel;
     private JLabel openingBidLabel;
     private JLabel bidIncrementLabel;
+    private JLabel currentPriceLabel;
 
     String usernameText = "";
     int currentAuctionSessionId = -1; // Track which auction user joined
+    private AuctionSession currentAuctionSession; // Track current auction for observer pattern
 
     // Services
     private final UserLobbyServices userLobbyServices = UserLobbyServices.getInstance();
     private final AuctionSessionService auctionSessionService = AuctionSessionService.getInstance();
+    private final JoinAuctionSession joinAuctionSession = JoinAuctionSession.getInstance();
 
     // Modern Color Scheme
     private static final Color PRIMARY_COLOR = new Color(41, 128, 185);      // Professional Blue
@@ -302,10 +306,22 @@ public class EndUserApp {
         JButton joinBtn = createStyledButton("Join", PRIMARY_COLOR, Color.WHITE);
         joinBtn.setPreferredSize(new Dimension(100, 35));
         joinBtn.addActionListener(e -> {
-            // Set current auction session ID and refresh the room panel
+            // Set current auction session ID
             currentAuctionSessionId = auction.getId();
-            refreshAuctionRoomPanel();
-            cardLayout.show(cardPanel, "ROOM");
+
+            // Join the auction and register as observer
+            currentAuctionSession = joinAuctionSession.execute(currentAuctionSessionId, this);
+
+            if (currentAuctionSession != null) {
+                System.out.println("Successfully joined auction and registered as observer");
+                refreshAuctionRoomPanel();
+                cardLayout.show(cardPanel, "ROOM");
+            } else {
+                JOptionPane.showMessageDialog(frame,
+                        "Failed to join auction. Please try again.",
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE);
+            }
         });
 
         card.add(infoPanel, BorderLayout.CENTER);
@@ -391,6 +407,17 @@ public class EndUserApp {
         bidIncrementLabel.setForeground(TEXT_LIGHT);
         bidIncrementLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
+        // Current price section
+        JLabel currentPriceTitle = new JLabel("Current Highest Bid:");
+        currentPriceTitle.setFont(LABEL_FONT);
+        currentPriceTitle.setForeground(TEXT_LIGHT);
+        currentPriceTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        currentPriceLabel = new JLabel("No bids yet");
+        currentPriceLabel.setFont(HEADING_FONT);
+        currentPriceLabel.setForeground(ACCENT_COLOR); // Green for current price
+        currentPriceLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
         lotPanel.add(lotTitle);
         lotPanel.add(Box.createVerticalStrut(15));
         lotPanel.add(lotNameLabel);
@@ -400,6 +427,10 @@ public class EndUserApp {
         lotPanel.add(openingBidLabel);
         lotPanel.add(Box.createVerticalStrut(8));
         lotPanel.add(bidIncrementLabel);
+        lotPanel.add(Box.createVerticalStrut(15));
+        lotPanel.add(currentPriceTitle);
+        lotPanel.add(Box.createVerticalStrut(5));
+        lotPanel.add(currentPriceLabel);
         lotPanel.add(Box.createVerticalGlue());
 
         // Right side - Bidding Panel
@@ -538,7 +569,16 @@ public class EndUserApp {
 
         JButton backButton = createStyledButton("Back to Lobby", PRIMARY_COLOR, Color.WHITE);
         backButton.setPreferredSize(new Dimension(200, 45));
-        backButton.addActionListener(e -> cardLayout.show(cardPanel, "LOBBY"));
+        backButton.addActionListener(e -> {
+            // Unregister observer when leaving auction
+            if (currentAuctionSession != null) {
+                currentAuctionSession.removeObserver(this);
+                currentAuctionSession = null;
+                System.out.println("Unregistered from auction updates");
+            }
+            currentAuctionSessionId = -1;
+            cardLayout.show(cardPanel, "LOBBY");
+        });
 
         JButton leaveButton = createStyledButton("Leave Auction", Color.WHITE, DANGER_COLOR);
         leaveButton.setPreferredSize(new Dimension(150, 45));
@@ -546,7 +586,16 @@ public class EndUserApp {
                 BorderFactory.createLineBorder(DANGER_COLOR, 2),
                 BorderFactory.createEmptyBorder(10, 20, 10, 20)
         ));
-        leaveButton.addActionListener(e -> cardLayout.show(cardPanel, "LOBBY"));
+        leaveButton.addActionListener(e -> {
+            // Unregister observer when leaving auction
+            if (currentAuctionSession != null) {
+                currentAuctionSession.removeObserver(this);
+                currentAuctionSession = null;
+                System.out.println("Unregistered from auction updates");
+            }
+            currentAuctionSessionId = -1;
+            cardLayout.show(cardPanel, "LOBBY");
+        });
 
         bottomPanel.add(backButton);
         bottomPanel.add(leaveButton);
@@ -599,6 +648,7 @@ public class EndUserApp {
             estimateRangeLabel.setText("");
             openingBidLabel.setText("");
             bidIncrementLabel.setText("");
+            currentPriceLabel.setText("No bids yet");
             return;
         }
 
@@ -610,6 +660,7 @@ public class EndUserApp {
             estimateRangeLabel.setText("");
             openingBidLabel.setText("");
             bidIncrementLabel.setText("");
+            currentPriceLabel.setText("Error");
             return;
         }
 
@@ -635,6 +686,16 @@ public class EndUserApp {
             bidIncrementLabel.setText(String.format("Bid Increment: $%.2f", lotInfo.getBidIncrement()));
         } else {
             bidIncrementLabel.setText("Bid Increment: Not set");
+        }
+
+        // Display current highest bid
+        if (currentAuctionSession != null && currentAuctionSession.getCurrentBid() != null) {
+            Bid currentBid = currentAuctionSession.getCurrentBid();
+            currentPriceLabel.setText(String.format("$%.2f", currentBid.getAmount()));
+            currentPriceLabel.setForeground(ACCENT_COLOR);
+        } else {
+            currentPriceLabel.setText("No bids yet");
+            currentPriceLabel.setForeground(TEXT_LIGHT);
         }
     }
 
@@ -666,5 +727,35 @@ public class EndUserApp {
         });
 
         return button;
+    }
+
+    // --- Observer Pattern Implementation ---
+
+    /**
+     * Called when the auction session fires a property change event.
+     * This method updates the UI when bids are placed by any bidder.
+     */
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        // Check if this is a bid update event
+        if (BIDDING_EVENT.BID_UPDATE.toString().equals(evt.getPropertyName())) {
+            Bid newBid = (Bid) evt.getNewValue();
+
+            // Update the current price label on the UI thread
+            SwingUtilities.invokeLater(() -> {
+                if (newBid != null) {
+                    currentPriceLabel.setText(String.format("$%.2f", newBid.getAmount()));
+                    currentPriceLabel.setForeground(ACCENT_COLOR);
+
+                    // Log the update
+                    System.out.println("🔔 BID UPDATE: New highest bid is $" + String.format("%.2f", newBid.getAmount()));
+
+                    // Optional: Flash animation or sound notification could be added here
+                } else {
+                    currentPriceLabel.setText("No bids yet");
+                    currentPriceLabel.setForeground(TEXT_LIGHT);
+                }
+            });
+        }
     }
 }

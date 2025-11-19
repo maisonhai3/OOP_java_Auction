@@ -3,6 +3,7 @@ public class Main {
         javax.swing.SwingUtilities.invokeLater(() -> {
             new auction.presentation.StaffApp();
             new auction.presentation.EndUserApp();
+            new auction.presentation.EndUserApp();
             new auction.presentation.AuctioneerApp();
         });
     }

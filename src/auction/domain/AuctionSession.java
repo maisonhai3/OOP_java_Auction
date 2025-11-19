@@ -95,6 +95,10 @@ public class AuctionSession {
         return this.currentBid;
     }
 
+    public Float getCurrentPrice() {
+        return this.currentPrice;
+    }
+
     public Float getBidIncrement() {
         return this.bidIncrement;
     }
