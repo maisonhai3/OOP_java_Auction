@@ -12,4 +12,8 @@ public class Bid {
     public Float getAmount() {
         return amount;
     }
+
+    public User getBidder() {
+        return bidder;
+    }
 }

@@ -26,6 +26,7 @@ public class AuctioneerApp implements PropertyChangeListener {
     private JLabel lotNameLabel;
     private JLabel statusLabel;
     private JLabel currentPriceLabel;
+    private JLabel currentBidderLabel;
 
     // Current auction tracking
     private int currentAuctionSessionId = -1;
@@ -213,9 +214,17 @@ public class AuctioneerApp implements PropertyChangeListener {
         currentPriceLabel.setForeground(ACCENT_COLOR);
         currentPriceLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
+        // Initialize current bidder label
+        currentBidderLabel = new JLabel("");
+        currentBidderLabel.setFont(LABEL_FONT);
+        currentBidderLabel.setForeground(TEXT_LIGHT);
+        currentBidderLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
         contentPanel.add(bidSectionTitle);
         contentPanel.add(Box.createVerticalStrut(10));
         contentPanel.add(currentPriceLabel);
+        contentPanel.add(Box.createVerticalStrut(5));
+        contentPanel.add(currentBidderLabel);
         contentPanel.add(Box.createVerticalGlue());
 
         // Bottom Panel - Action buttons
@@ -403,13 +412,19 @@ public class AuctioneerApp implements PropertyChangeListener {
         statusLabel.setText("Status: " + status);
         statusLabel.setForeground(ACCENT_COLOR); // Green for started status
 
-        // Update current price
-        if (currentAuctionSession.getCurrentPrice() != null && currentAuctionSession.getCurrentPrice() > 0) {
-            currentPriceLabel.setText(String.format("$%.2f", currentAuctionSession.getCurrentPrice()));
+        // Update current price and bidder
+        if (currentAuctionSession.getCurrentBid() != null) {
+            currentPriceLabel.setText(String.format("$%.2f", currentAuctionSession.getCurrentBid().getAmount()));
             currentPriceLabel.setForeground(ACCENT_COLOR);
+
+            // Display bidder information
+            String bidderName = currentAuctionSession.getCurrentBid().getBidder().toString();
+            currentBidderLabel.setText("Bidder: " + bidderName);
+            currentBidderLabel.setForeground(TEXT_COLOR);
         } else {
             currentPriceLabel.setText("No bids yet");
             currentPriceLabel.setForeground(TEXT_LIGHT);
+            currentBidderLabel.setText("");
         }
 
         System.out.println("Auction room panel refreshed");
@@ -442,13 +457,18 @@ public class AuctioneerApp implements PropertyChangeListener {
             // Bid update event - update UI in real-time
             Bid newBid = (Bid) evt.getNewValue();
             if (newBid != null) {
-                System.out.println("🔔 [AUCTIONEER] BID UPDATE: New bid $" + String.format("%.2f", newBid.getAmount()));
+                String bidderName = newBid.getBidder().toString();
+                System.out.println("🔔 [AUCTIONEER] BID UPDATE: New bid $" + String.format("%.2f", newBid.getAmount()) + " from " + bidderName);
 
-                // Update the current price label on the UI thread
+                // Update the current price and bidder labels on the UI thread
                 SwingUtilities.invokeLater(() -> {
                     if (currentAuctionSession != null && currentAuctionSession.getCurrentPrice() != null) {
                         currentPriceLabel.setText(String.format("$%.2f", currentAuctionSession.getCurrentPrice()));
                         currentPriceLabel.setForeground(ACCENT_COLOR);
+
+                        // Update bidder label
+                        currentBidderLabel.setText("Bidder: " + bidderName);
+                        currentBidderLabel.setForeground(TEXT_COLOR);
                     }
                 });
             }
