@@ -425,15 +425,108 @@ public class EndUserApp {
         ));
         bidField.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JButton placeBidButton = createStyledButton("Place Bid", ACCENT_COLOR, Color.WHITE);
+        // Custom amount bid button
+        JButton placeBidButton = createStyledButton("Place Custom Bid", ACCENT_COLOR, Color.WHITE);
         placeBidButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, 45));
         placeBidButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+        placeBidButton.addActionListener(e -> {
+            try {
+                // Validate inputs
+                if (currentAuctionSessionId == -1) {
+                    JOptionPane.showMessageDialog(frame,
+                            "Please join an auction first",
+                            "Error",
+                            JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                String bidAmountStr = bidField.getText().trim();
+                if (bidAmountStr.isEmpty()) {
+                    JOptionPane.showMessageDialog(frame,
+                            "Please enter a bid amount",
+                            "Error",
+                            JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                float bidAmount = Float.parseFloat(bidAmountStr);
+
+                // Place custom bid
+                auctionSessionService.placeBidCustomAmount(currentAuctionSessionId, bidAmount, usernameText);
+
+                // Show success message
+                JOptionPane.showMessageDialog(frame,
+                        "Bid placed successfully: $" + String.format("%.2f", bidAmount),
+                        "Success",
+                        JOptionPane.INFORMATION_MESSAGE);
+
+                // Clear the bid field
+                bidField.setText("");
+
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(frame,
+                        "Invalid bid amount. Please enter a valid number.",
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE);
+            } catch (IllegalArgumentException ex) {
+                JOptionPane.showMessageDialog(frame,
+                        "Bid failed: " + ex.getMessage(),
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE);
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(frame,
+                        "An error occurred: " + ex.getMessage(),
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE);
+                ex.printStackTrace();
+            }
+        });
+
+        // Incremental bid button
+        JButton incrementalBidButton = createStyledButton("Quick Bid (+Increment)", PRIMARY_COLOR, Color.WHITE);
+        incrementalBidButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, 45));
+        incrementalBidButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+        incrementalBidButton.addActionListener(e -> {
+            try {
+                // Validate auction session
+                if (currentAuctionSessionId == -1) {
+                    JOptionPane.showMessageDialog(frame,
+                            "Please join an auction first",
+                            "Error",
+                            JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                // Place incremental bid
+                auctionSessionService.placeBidIncremental(currentAuctionSessionId, usernameText);
+
+                // Show success message
+                JOptionPane.showMessageDialog(frame,
+                        "Incremental bid placed successfully!",
+                        "Success",
+                        JOptionPane.INFORMATION_MESSAGE);
+
+            } catch (IllegalArgumentException ex) {
+                JOptionPane.showMessageDialog(frame,
+                        "Bid failed: " + ex.getMessage(),
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE);
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(frame,
+                        "An error occurred: " + ex.getMessage(),
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE);
+                ex.printStackTrace();
+            }
+        });
 
         biddingPanel.add(bidTitle);
         biddingPanel.add(Box.createVerticalStrut(15));
         biddingPanel.add(bidField);
         biddingPanel.add(Box.createVerticalStrut(15));
         biddingPanel.add(placeBidButton);
+        biddingPanel.add(Box.createVerticalStrut(10));
+        biddingPanel.add(incrementalBidButton);
         biddingPanel.add(Box.createVerticalGlue());
 
         contentPanel.add(lotPanel);
