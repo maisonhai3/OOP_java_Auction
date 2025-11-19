@@ -72,13 +72,46 @@ public class AuctioneerApp implements PropertyChangeListener {
         frame.setSize(1000, 700);
         frame.setLocationRelativeTo(null);
 
-        // Main Panel
-        JPanel mainPanel = new JPanel(new BorderLayout(15, 15));
-        mainPanel.setBackground(BACKGROUND_COLOR);
-        mainPanel.setBorder(BorderFactory.createEmptyBorder(25, 30, 25, 30));
+        // Setup CardLayout for switching between views
+        cardLayout = new CardLayout();
+        cardPanel = new JPanel(cardLayout);
+        cardPanel.setBackground(BACKGROUND_COLOR);
+
+        // Add panels
+        cardPanel.add(createLobbyPanel(), "LOBBY");
+        cardPanel.add(createAuctionRoomPanel(), "ROOM");
+
+        // Add card panel to frame
+        frame.add(cardPanel);
+        frame.setVisible(true);
+
+        // Initial load
+        refreshAuctionList();
+    }
+
+    private JPanel createLobbyPanel() {
+        JPanel panel = new JPanel(new BorderLayout(15, 15));
+        panel.setBackground(BACKGROUND_COLOR);
+        panel.setBorder(BorderFactory.createEmptyBorder(25, 30, 25, 30));
 
         // Header
-        JPanel headerPanel = createHeaderPanel();
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setBackground(CARD_BACKGROUND);
+        headerPanel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(189, 195, 199), 1),
+                BorderFactory.createEmptyBorder(20, 25, 20, 25)
+        ));
+
+        JLabel title = new JLabel("Auctioneer Portal");
+        title.setFont(HEADING_FONT);
+        title.setForeground(ORANGE_COLOR);
+
+        JLabel subtitle = new JLabel("Manage Live Auctions");
+        subtitle.setFont(LABEL_FONT);
+        subtitle.setForeground(TEXT_LIGHT);
+
+        headerPanel.add(title, BorderLayout.WEST);
+        headerPanel.add(subtitle, BorderLayout.EAST);
 
         // Auction List Panel
         auctionListPanel = new JPanel();
@@ -100,44 +133,6 @@ public class AuctioneerApp implements PropertyChangeListener {
         scrollPane.getViewport().setBackground(BACKGROUND_COLOR);
 
         // Bottom panel with refresh button
-        JPanel bottomPanel = createBottomPanel();
-
-        // Add panels to main panel
-        mainPanel.add(headerPanel, BorderLayout.NORTH);
-        mainPanel.add(scrollPane, BorderLayout.CENTER);
-        mainPanel.add(bottomPanel, BorderLayout.SOUTH);
-
-        // Add main panel to frame
-        frame.add(mainPanel);
-        frame.setVisible(true);
-
-        // Initial load
-        refreshAuctionList();
-    }
-
-    private JPanel createHeaderPanel() {
-        JPanel headerPanel = new JPanel(new BorderLayout());
-        headerPanel.setBackground(CARD_BACKGROUND);
-        headerPanel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(189, 195, 199), 1),
-                BorderFactory.createEmptyBorder(20, 25, 20, 25)
-        ));
-
-        JLabel title = new JLabel("Auctioneer Portal");
-        title.setFont(HEADING_FONT);
-        title.setForeground(ORANGE_COLOR);
-
-        JLabel subtitle = new JLabel("Manage Live Auctions");
-        subtitle.setFont(LABEL_FONT);
-        subtitle.setForeground(TEXT_LIGHT);
-
-        headerPanel.add(title, BorderLayout.WEST);
-        headerPanel.add(subtitle, BorderLayout.EAST);
-
-        return headerPanel;
-    }
-
-    private JPanel createBottomPanel() {
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 0));
         bottomPanel.setBackground(BACKGROUND_COLOR);
 
@@ -147,7 +142,106 @@ public class AuctioneerApp implements PropertyChangeListener {
 
         bottomPanel.add(refreshButton);
 
-        return bottomPanel;
+        // Add panels to main panel
+        panel.add(headerPanel, BorderLayout.NORTH);
+        panel.add(scrollPane, BorderLayout.CENTER);
+        panel.add(bottomPanel, BorderLayout.SOUTH);
+
+        return panel;
+    }
+
+    private JPanel createAuctionRoomPanel() {
+        JPanel panel = new JPanel(new BorderLayout(15, 15));
+        panel.setBackground(BACKGROUND_COLOR);
+        panel.setBorder(BorderFactory.createEmptyBorder(25, 30, 25, 30));
+
+        // Header Panel
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setBackground(CARD_BACKGROUND);
+        headerPanel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(189, 195, 199), 1),
+                BorderFactory.createEmptyBorder(20, 25, 20, 25)
+        ));
+
+        JLabel title = new JLabel("Live Auction");
+        title.setFont(HEADING_FONT);
+        title.setForeground(ORANGE_COLOR);
+
+        // Initialize status label
+        statusLabel = new JLabel("Loading...");
+        statusLabel.setFont(LABEL_FONT);
+        statusLabel.setForeground(TEXT_LIGHT);
+
+        headerPanel.add(title, BorderLayout.WEST);
+        headerPanel.add(statusLabel, BorderLayout.EAST);
+
+        // Main content area
+        JPanel contentPanel = new JPanel();
+        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+        contentPanel.setBackground(CARD_BACKGROUND);
+        contentPanel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(189, 195, 199), 1),
+                BorderFactory.createEmptyBorder(30, 30, 30, 30)
+        ));
+
+        // Lot Information Section
+        JLabel lotSectionTitle = new JLabel("Current Lot");
+        lotSectionTitle.setFont(SUBHEADING_FONT);
+        lotSectionTitle.setForeground(TEXT_COLOR);
+        lotSectionTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        // Initialize lot name label
+        lotNameLabel = new JLabel("Loading...");
+        lotNameLabel.setFont(HEADING_FONT);
+        lotNameLabel.setForeground(ORANGE_COLOR);
+        lotNameLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        contentPanel.add(lotSectionTitle);
+        contentPanel.add(Box.createVerticalStrut(10));
+        contentPanel.add(lotNameLabel);
+        contentPanel.add(Box.createVerticalStrut(30));
+
+        // Current Highest Bid Section
+        JLabel bidSectionTitle = new JLabel("Current Highest Bid");
+        bidSectionTitle.setFont(SUBHEADING_FONT);
+        bidSectionTitle.setForeground(TEXT_COLOR);
+        bidSectionTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        // Initialize current price label
+        currentPriceLabel = new JLabel("No bids yet");
+        currentPriceLabel.setFont(new Font("Segoe UI", Font.BOLD, 36));
+        currentPriceLabel.setForeground(ACCENT_COLOR);
+        currentPriceLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        contentPanel.add(bidSectionTitle);
+        contentPanel.add(Box.createVerticalStrut(10));
+        contentPanel.add(currentPriceLabel);
+        contentPanel.add(Box.createVerticalGlue());
+
+        // Bottom Panel - Action buttons
+        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 0));
+        bottomPanel.setBackground(BACKGROUND_COLOR);
+
+        JButton backButton = createStyledButton("Back to Lobby", PRIMARY_COLOR, Color.WHITE);
+        backButton.setPreferredSize(new Dimension(180, 45));
+        backButton.addActionListener(e -> {
+            // Unregister observer when leaving
+            if (currentAuctionSession != null) {
+                currentAuctionSession.removeObserver(this);
+                currentAuctionSession = null;
+                System.out.println("Auctioneer left auction room");
+            }
+            currentAuctionSessionId = -1;
+            cardLayout.show(cardPanel, "LOBBY");
+        });
+
+        bottomPanel.add(backButton);
+
+        panel.add(headerPanel, BorderLayout.NORTH);
+        panel.add(contentPanel, BorderLayout.CENTER);
+        panel.add(bottomPanel, BorderLayout.SOUTH);
+
+        return panel;
     }
 
     private void refreshAuctionList() {
@@ -255,15 +349,13 @@ public class AuctioneerApp implements PropertyChangeListener {
                 AuctionSessionRepository repository = new AuctionSessionRepository();
                 repository.updateStatus(auction.getId(), currentAuctionSession.getStatus());
 
-                JOptionPane.showMessageDialog(frame,
-                        "Auction started successfully!\n" +
-                                "Title: " + title + "\n" +
-                                "Status: " + currentAuctionSession.getStatus(),
-                        "Auction Started",
-                        JOptionPane.INFORMATION_MESSAGE);
+                System.out.println("Auction started successfully: " + title);
 
-                // Refresh the list to show updated status
-                refreshAuctionList();
+                // Refresh auction room panel with data
+                refreshAuctionRoomPanel();
+
+                // Switch to auction room view
+                cardLayout.show(cardPanel, "ROOM");
 
             } catch (IllegalStateException ex) {
                 JOptionPane.showMessageDialog(frame,
@@ -286,6 +378,41 @@ public class AuctioneerApp implements PropertyChangeListener {
         card.add(buttonPanel, BorderLayout.EAST);
 
         return card;
+    }
+
+    private void refreshAuctionRoomPanel() {
+        if (currentAuctionSession == null) {
+            lotNameLabel.setText("No auction loaded");
+            statusLabel.setText("Status: Unknown");
+            currentPriceLabel.setText("No bids yet");
+            return;
+        }
+
+        // Update lot name
+        if (currentAuctionSession.getCatalog() != null && !currentAuctionSession.getCatalog().isEmpty()) {
+            String lotName = currentAuctionSession.getCatalog().get(0).getName();
+            lotNameLabel.setText(lotName);
+        } else {
+            lotNameLabel.setText("No lot assigned");
+        }
+
+        // Update status
+        String status = currentAuctionSession.getStatus() != null
+                ? currentAuctionSession.getStatus().toString()
+                : "UNKNOWN";
+        statusLabel.setText("Status: " + status);
+        statusLabel.setForeground(ACCENT_COLOR); // Green for started status
+
+        // Update current price
+        if (currentAuctionSession.getCurrentPrice() != null && currentAuctionSession.getCurrentPrice() > 0) {
+            currentPriceLabel.setText(String.format("$%.2f", currentAuctionSession.getCurrentPrice()));
+            currentPriceLabel.setForeground(ACCENT_COLOR);
+        } else {
+            currentPriceLabel.setText("No bids yet");
+            currentPriceLabel.setForeground(TEXT_LIGHT);
+        }
+
+        System.out.println("Auction room panel refreshed");
     }
 
     // Helper method to create styled buttons
@@ -312,14 +439,30 @@ public class AuctioneerApp implements PropertyChangeListener {
         String eventName = evt.getPropertyName();
 
         if (BIDDING_EVENT.BID_UPDATE.toString().equals(eventName)) {
-            // Bid update event
+            // Bid update event - update UI in real-time
             Bid newBid = (Bid) evt.getNewValue();
             if (newBid != null) {
                 System.out.println("🔔 [AUCTIONEER] BID UPDATE: New bid $" + String.format("%.2f", newBid.getAmount()));
+
+                // Update the current price label on the UI thread
+                SwingUtilities.invokeLater(() -> {
+                    if (currentAuctionSession != null && currentAuctionSession.getCurrentPrice() != null) {
+                        currentPriceLabel.setText(String.format("$%.2f", currentAuctionSession.getCurrentPrice()));
+                        currentPriceLabel.setForeground(ACCENT_COLOR);
+                    }
+                });
             }
         } else if (BIDDING_EVENT.AUCTION_STARTED.toString().equals(eventName)) {
             // Auction started event
             System.out.println("🔔 [AUCTIONEER] AUCTION STARTED");
+
+            // Update status label
+            SwingUtilities.invokeLater(() -> {
+                if (currentAuctionSession != null) {
+                    statusLabel.setText("Status: " + currentAuctionSession.getStatus());
+                    statusLabel.setForeground(ACCENT_COLOR);
+                }
+            });
         }
     }
 }
