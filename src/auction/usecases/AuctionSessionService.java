@@ -1,6 +1,7 @@
 package auction.usecases;
 
 import auction.domain.AuctionSession;
+import auction.domain.Bid;
 import auction.domain.Lot;
 import auction.infrastructure.AuctionSessionRepository;
 
@@ -19,7 +20,7 @@ public class AuctionSessionService {
         return INSTANCE;
     }
 
-    // Services
+    // --- Services ---
 
     /**
      * Get lot information for display to end users.
@@ -54,4 +55,19 @@ public class AuctionSessionService {
         );
     }
 
+    public void placeBid(int auctionSessionId, float bidAmount, String bidderUserId) {
+        //TODO: Validate User existence - skipped for brevity
+
+        // Validate auction session
+        AuctionSession auctionSession = auctionSessionRepository.findById(auctionSessionId);
+        if (auctionSession == null) {
+            System.err.println("Auction session not found with ID: " + auctionSessionId);
+            return;
+        }
+
+        // Main
+        Bid bid = new Bid(bidAmount, bidderUserId);
+        auctionSession.placeBid(bid);
+        System.out.println("Placing bid of " + bidAmount + " in auction session ID: " + auctionSessionId);
+    }
 }
