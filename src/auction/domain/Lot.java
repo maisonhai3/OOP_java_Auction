@@ -2,9 +2,10 @@ package auction.domain;
 
 public class Lot {
     // Fields
+    private Integer id; // Database ID
     private String name;
     private LotStatus status;
-    private Float estimatePrice;
+    private PriceRange estimateRange;
 
     // The confidential minimum price that the consignor is willing to accept.
     // If bidding doesn't reach the reserve, the item is not sold.
@@ -15,13 +16,21 @@ public class Lot {
     // PRIVATE constructor - only accessible via Builder
     private Lot(LotBuilder builder) {
         this.name = builder.name;
-        this.estimatePrice = builder.estimatePrice;
+        this.estimateRange = builder.estimateRange;
         this.reservePrice = builder.reservePrice;
         this.status = LotStatus.UNSOLD; // Default status
         this.noReserve = false; // Default value
     }
 
     // Getters
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
     public String getName() {
         return name;
     }
@@ -34,8 +43,8 @@ public class Lot {
         this.status = status;
     }
 
-    public Float getEstimatePrice() {
-        return estimatePrice;
+    public PriceRange getEstimateRange() {
+        return estimateRange;
     }
 
     public Float getReservePrice() {
@@ -56,7 +65,7 @@ public class Lot {
         private final String name;
 
         // Optional fields
-        private Float estimatePrice = null;
+        private PriceRange estimateRange = null;
         private Float reservePrice = null;
 
         // Constructor - only requires mandatory fields
@@ -68,8 +77,8 @@ public class Lot {
         }
 
         // Fluent methods for optional fields
-        public LotBuilder estimatePrice(Float price) {
-            this.estimatePrice = price;
+        public LotBuilder estimateRange(PriceRange range) {
+            this.estimateRange = range;
             return this;
         }
 

@@ -83,17 +83,38 @@ public class AuctionSessionRepository {
         List<AuctionSession> sessions = new ArrayList<>();
 
         try (Connection conn = dbConnection.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
+             Statement stmt = conn.createStatement()) {
 
+            ResultSet rs = stmt.executeQuery(sql);
+
+            // First, collect all the raw data from ResultSet
+            List<AuctionSessionData> dataList = new ArrayList<>();
             while (rs.next()) {
-                sessions.add(mapResultSetToAuctionSession(rs));
+                AuctionSessionData data = new AuctionSessionData();
+                data.title = rs.getString("title");
+                data.lotId = rs.getInt("lot_id");
+                data.status = rs.getString("status");
+                dataList.add(data);
             }
+            rs.close(); // Explicitly close ResultSet before nested queries
+
+            // Now map the data to AuctionSession objects (can safely query lots)
+            for (AuctionSessionData data : dataList) {
+                sessions.add(mapDataToAuctionSession(data));
+            }
+
         } catch (SQLException e) {
             System.err.println("Failed to retrieve auction sessions");
             e.printStackTrace();
         }
         return sessions;
+    }
+
+    // Helper class to hold raw data from ResultSet
+    private static class AuctionSessionData {
+        String title;
+        int lotId;
+        String status;
     }
 
     /**
@@ -126,9 +147,22 @@ public class AuctionSessionRepository {
 
             ResultSet rs = pstmt.executeQuery();
 
+            // First, collect all the raw data from ResultSet
+            List<AuctionSessionData> dataList = new ArrayList<>();
             while (rs.next()) {
-                sessions.add(mapResultSetToAuctionSession(rs));
+                AuctionSessionData data = new AuctionSessionData();
+                data.title = rs.getString("title");
+                data.lotId = rs.getInt("lot_id");
+                data.status = rs.getString("status");
+                dataList.add(data);
             }
+            rs.close(); // Explicitly close ResultSet before nested queries
+
+            // Now map the data to AuctionSession objects (can safely query lots)
+            for (AuctionSessionData data : dataList) {
+                sessions.add(mapDataToAuctionSession(data));
+            }
+
         } catch (SQLException e) {
             System.err.println("Failed to retrieve auction sessions by status");
             e.printStackTrace();
@@ -196,6 +230,31 @@ public class AuctionSessionRepository {
         // Load the associated lot
         int lotId = rs.getInt("lot_id");
         Lot lot = lotRepository.findById(lotId);
+        if (lot != null) {
+            List<Lot> catalog = new ArrayList<>();
+            catalog.add(lot);
+            session.setCatalog(catalog);
+        }
+
+        return session;
+    }
+
+    /**
+     * Helper method to map AuctionSessionData to AuctionSession object
+     */
+    private AuctionSession mapDataToAuctionSession(AuctionSessionData data) {
+        AuctionSession session = new AuctionSession();
+
+        // Set title
+        session.setTitle(data.title);
+
+        // Set status
+        if (data.status != null) {
+            session.setStatus(AuctionStatus.valueOf(data.status));
+        }
+
+        // Load the associated lot
+        Lot lot = lotRepository.findById(data.lotId);
         if (lot != null) {
             List<Lot> catalog = new ArrayList<>();
             catalog.add(lot);

@@ -26,18 +26,23 @@ public class LotService {
      * This is the "backend API" that handles validation and parsing.
      *
      * @param name             The name of the lot (required)
-     * @param estimatePriceStr The estimate price as a string (optional)
+     * @param estimateMinStr   The minimum estimate price as a string (optional)
+     * @param estimateMaxStr   The maximum estimate price as a string (optional)
      * @param reservePriceStr  The reserve price as a string (optional)
      * @return The created Lot object, or null if validation fails
      */
-    public Lot createLot(String name, String estimatePriceStr, String reservePriceStr) {
+    public Lot createLot(String name, String estimateMinStr, String estimateMaxStr, String reservePriceStr) {
         // 1. Parse and validate
-        Float estimatePrice = null;
+        Float estimateMin = null;
+        Float estimateMax = null;
         Float reservePrice = null;
 
         try {
-            if (estimatePriceStr != null && !estimatePriceStr.trim().isEmpty()) {
-                estimatePrice = Float.parseFloat(estimatePriceStr);
+            if (estimateMinStr != null && !estimateMinStr.trim().isEmpty()) {
+                estimateMin = Float.parseFloat(estimateMinStr);
+            }
+            if (estimateMaxStr != null && !estimateMaxStr.trim().isEmpty()) {
+                estimateMax = Float.parseFloat(estimateMaxStr);
             }
             if (reservePriceStr != null && !reservePriceStr.trim().isEmpty()) {
                 reservePrice = Float.parseFloat(reservePriceStr);
@@ -49,10 +54,19 @@ public class LotService {
             return null;
         }
 
+        // Create PriceRange
+        auction.domain.PriceRange estimateRange = null;
+        try {
+            estimateRange = new auction.domain.PriceRange(estimateMin, estimateMax);
+        } catch (IllegalArgumentException e) {
+            System.err.println("Error: " + e.getMessage());
+            return null;
+        }
+
         // 2. Use Builder to create domain object
         // Service is the ONLY place that knows about Builder
         Lot lot = new Lot.LotBuilder(name)
-                .estimatePrice(estimatePrice)
+                .estimateRange(estimateRange)
                 .reservePrice(reservePrice)
                 .build();
 

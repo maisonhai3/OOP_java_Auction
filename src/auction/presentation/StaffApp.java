@@ -176,20 +176,35 @@ public class StaffApp {
         ));
         nameField.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        // Estimate Price field
-        JLabel estimatePriceLabel = new JLabel("Estimate Price (optional)");
-        estimatePriceLabel.setFont(LABEL_FONT);
-        estimatePriceLabel.setForeground(TEXT_COLOR);
-        estimatePriceLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        // Estimate Min Price field
+        JLabel estimateMinLabel = new JLabel("Estimate Min Price (optional)");
+        estimateMinLabel.setFont(LABEL_FONT);
+        estimateMinLabel.setForeground(TEXT_COLOR);
+        estimateMinLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JTextField estimatePriceField = new JTextField(30);
-        estimatePriceField.setFont(SUBHEADING_FONT);
-        estimatePriceField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
-        estimatePriceField.setBorder(BorderFactory.createCompoundBorder(
+        JTextField estimateMinField = new JTextField(30);
+        estimateMinField.setFont(SUBHEADING_FONT);
+        estimateMinField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+        estimateMinField.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(189, 195, 199), 1),
                 BorderFactory.createEmptyBorder(8, 12, 8, 12)
         ));
-        estimatePriceField.setAlignmentX(Component.LEFT_ALIGNMENT);
+        estimateMinField.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        // Estimate Max Price field
+        JLabel estimateMaxLabel = new JLabel("Estimate Max Price (optional)");
+        estimateMaxLabel.setFont(LABEL_FONT);
+        estimateMaxLabel.setForeground(TEXT_COLOR);
+        estimateMaxLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JTextField estimateMaxField = new JTextField(30);
+        estimateMaxField.setFont(SUBHEADING_FONT);
+        estimateMaxField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+        estimateMaxField.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(189, 195, 199), 1),
+                BorderFactory.createEmptyBorder(8, 12, 8, 12)
+        ));
+        estimateMaxField.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         // Reserve Price field
         JLabel reservePriceLabel = new JLabel("Reserve Price (optional)");
@@ -212,7 +227,8 @@ public class StaffApp {
         createButton.setAlignmentX(Component.LEFT_ALIGNMENT);
         createButton.addActionListener(e -> {
             String name = nameField.getText().trim();
-            String estimatePrice = estimatePriceField.getText().trim();
+            String estimateMin = estimateMinField.getText().trim();
+            String estimateMax = estimateMaxField.getText().trim();
             String reservePrice = reservePriceField.getText().trim();
 
             if (name.isEmpty()) {
@@ -224,7 +240,7 @@ public class StaffApp {
             }
 
             // Create lot using service
-            Lot lot = lotService.createLot(name, estimatePrice, reservePrice);
+            Lot lot = lotService.createLot(name, estimateMin, estimateMax, reservePrice);
 
             if (lot != null) {
                 JOptionPane.showMessageDialog(frame,
@@ -234,7 +250,8 @@ public class StaffApp {
 
                 // Clear fields
                 nameField.setText("");
-                estimatePriceField.setText("");
+                estimateMinField.setText("");
+                estimateMaxField.setText("");
                 reservePriceField.setText("");
 
                 // Refresh the list and combo box
@@ -253,9 +270,13 @@ public class StaffApp {
         formPanel.add(Box.createVerticalStrut(8));
         formPanel.add(nameField);
         formPanel.add(Box.createVerticalStrut(15));
-        formPanel.add(estimatePriceLabel);
+        formPanel.add(estimateMinLabel);
         formPanel.add(Box.createVerticalStrut(8));
-        formPanel.add(estimatePriceField);
+        formPanel.add(estimateMinField);
+        formPanel.add(Box.createVerticalStrut(15));
+        formPanel.add(estimateMaxLabel);
+        formPanel.add(Box.createVerticalStrut(8));
+        formPanel.add(estimateMaxField);
         formPanel.add(Box.createVerticalStrut(15));
         formPanel.add(reservePriceLabel);
         formPanel.add(Box.createVerticalStrut(8));
@@ -410,8 +431,9 @@ public class StaffApp {
             // Optionally add a placeholder
             lotComboBox.addItem(null);
         } else {
-            for (int i = 0; i < lots.size(); i++) {
-                lotComboBox.addItem(new LotItem(i, lots.get(i)));
+            for (Lot lot : lots) {
+                // Use the actual database ID from the Lot object
+                lotComboBox.addItem(new LotItem(lot.getId(), lot));
             }
         }
     }
@@ -488,7 +510,7 @@ public class StaffApp {
         nameLabel.setFont(SUBHEADING_FONT);
         nameLabel.setForeground(TEXT_COLOR);
 
-        String estimateText = lot.getEstimatePrice() != null ? "$" + lot.getEstimatePrice() : "No estimate";
+        String estimateText = lot.getEstimateRange() != null ? lot.getEstimateRange().toDisplayString() : "No estimate";
         String reserveText = lot.getReservePrice() != null ? "$" + lot.getReservePrice() : "No reserve";
         JLabel detailsLabel = new JLabel("Estimate: " + estimateText + " | Reserve: " + reserveText);
         detailsLabel.setFont(LABEL_FONT);

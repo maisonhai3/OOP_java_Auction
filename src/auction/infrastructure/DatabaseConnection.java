@@ -58,7 +58,8 @@ public class DatabaseConnection {
                         CREATE TABLE IF NOT EXISTS lots (
                             id INTEGER PRIMARY KEY AUTOINCREMENT,
                             name TEXT NOT NULL,
-                            estimate_price REAL,
+                            estimate_min REAL,
+                            estimate_max REAL,
                             reserve_price REAL,
                             status TEXT DEFAULT 'UNSOLD',
                             no_reserve INTEGER DEFAULT 0
