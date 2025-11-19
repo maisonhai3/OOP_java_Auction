@@ -1,19 +1,39 @@
 package auction.presentation;
 
 import auction.domain.AuctionSession;
+import auction.domain.Bid;
+import auction.domain.enums.BIDDING_EVENT;
 import auction.usecases.AuctioneerLobbyService;
+import auction.usecases.JoinAuctionSession;
+import auction.usecases.StartAuctionSession;
 
 import javax.swing.*;
 import java.awt.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.List;
 
-public class AuctioneerApp {
+public class AuctioneerApp implements PropertyChangeListener {
     // Fields
     private JFrame frame;
+    private JPanel cardPanel;
+    private CardLayout cardLayout;
     private JPanel auctionListPanel;
+    private JPanel auctionRoomPanel;
+
+    // Auction room dynamic labels
+    private JLabel lotNameLabel;
+    private JLabel statusLabel;
+    private JLabel currentPriceLabel;
+
+    // Current auction tracking
+    private int currentAuctionSessionId = -1;
+    private AuctionSession currentAuctionSession;
 
     // Services
     private final AuctioneerLobbyService auctioneerLobbyService = AuctioneerLobbyService.getInstance();
+    private final JoinAuctionSession joinAuctionSession = JoinAuctionSession.getInstance();
+    private final StartAuctionSession startAuctionSession = StartAuctionSession.getInstance();
 
     // Modern Color Scheme (same as other apps)
     private static final Color PRIMARY_COLOR = new Color(41, 128, 185);      // Professional Blue
@@ -196,19 +216,47 @@ public class AuctioneerApp {
         JButton manageButton = createStyledButton("Manage", ORANGE_COLOR, Color.WHITE);
         manageButton.setPreferredSize(new Dimension(100, 35));
         manageButton.addActionListener(e -> {
-            JOptionPane.showMessageDialog(frame,
-                    "Managing auction: " + title,
-                    "Manage Auction",
-                    JOptionPane.INFORMATION_MESSAGE);
+            // Join the auction as observer (auctioneer monitors the auction)
+            currentAuctionSessionId = auction.getId();
+            currentAuctionSession = joinAuctionSession.execute(currentAuctionSessionId, this);
+
+            if (currentAuctionSession != null) {
+                JOptionPane.showMessageDialog(frame,
+                        "Now managing auction: " + title + "\nStatus: " + currentAuctionSession.getStatus(),
+                        "Auction Management",
+                        JOptionPane.INFORMATION_MESSAGE);
+            }
         });
 
         JButton startButton = createStyledButton("Start", ACCENT_COLOR, Color.WHITE);
         startButton.setPreferredSize(new Dimension(80, 35));
         startButton.addActionListener(e -> {
-            JOptionPane.showMessageDialog(frame,
-                    "Starting auction: " + title,
-                    "Start Auction",
-                    JOptionPane.INFORMATION_MESSAGE);
+            try {
+                // Start the auction
+                AuctionSession startedSession = startAuctionSession.execute(auction.getId());
+
+                JOptionPane.showMessageDialog(frame,
+                        "Auction started successfully!\n" +
+                                "Title: " + title + "\n" +
+                                "Status: " + startedSession.getStatus(),
+                        "Auction Started",
+                        JOptionPane.INFORMATION_MESSAGE);
+
+                // Refresh the list to show updated status
+                refreshAuctionList();
+
+            } catch (IllegalStateException ex) {
+                JOptionPane.showMessageDialog(frame,
+                        "Cannot start auction: " + ex.getMessage(),
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE);
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(frame,
+                        "An error occurred: " + ex.getMessage(),
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE);
+                ex.printStackTrace();
+            }
         });
 
         buttonPanel.add(manageButton);
@@ -231,5 +279,27 @@ public class AuctioneerApp {
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         return button;
+    }
+
+    // --- Observer Pattern Implementation ---
+
+    /**
+     * Called when the auction session fires a property change event.
+     * Auctioneer receives notifications about bid updates and auction status changes.
+     */
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        String eventName = evt.getPropertyName();
+
+        if (BIDDING_EVENT.BID_UPDATE.toString().equals(eventName)) {
+            // Bid update event
+            Bid newBid = (Bid) evt.getNewValue();
+            if (newBid != null) {
+                System.out.println("🔔 [AUCTIONEER] BID UPDATE: New bid $" + String.format("%.2f", newBid.getAmount()));
+            }
+        } else if (BIDDING_EVENT.AUCTION_STARTED.toString().equals(eventName)) {
+            // Auction started event
+            System.out.println("🔔 [AUCTIONEER] AUCTION STARTED");
+        }
     }
 }

@@ -216,6 +216,29 @@ public class AuctionSessionRepository {
     }
 
     /**
+     * Update only the status of an auction session
+     * More efficient than full update when only status changes
+     */
+    public boolean updateStatus(int id, AuctionStatus status) {
+        String sql = "UPDATE auction_sessions SET status = ? WHERE id = ?";
+
+        try (Connection conn = dbConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, status.name());
+            pstmt.setInt(2, id);
+
+            int rowsAffected = pstmt.executeUpdate();
+            System.out.println("Updated auction session " + id + " status to " + status);
+            return rowsAffected > 0;
+        } catch (SQLException e) {
+            System.err.println("Failed to update status for auction session with ID: " + id);
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
      * Delete an auction session by ID
      */
     public boolean delete(int id) {

@@ -133,10 +133,29 @@ public class AuctionSession {
         this.supporter.removePropertyChangeListener(pcl);
     }
 
+    //  --- Auction Lifecycle Methods ---
+    public void startAuction() {
+        // Validate
+        if (this.status != AuctionStatus.SCHEDULED) {
+            throw new IllegalStateException("Auction can only be started from SCHEDULED status. Current status: " + this.status);
+        }
+
+        // Change status
+        AuctionStatus oldStatus = this.status;
+        this.status = AuctionStatus.STARTED;
+        this.startTime = new Date();
+
+        // Notify all observers
+        supporter.firePropertyChange(BIDDING_EVENT.AUCTION_STARTED.toString(), oldStatus, AuctionStatus.STARTED);
+    }
+
     public void placeBid(Bid newBid) {
         // Validate
         if (newBid == null) {
             throw new IllegalArgumentException("Bid cannot be null");
+        }
+        if (this.status != AuctionStatus.STARTED) {
+            throw new IllegalStateException("Auction is not active. Current status: " + this.status);
         }
         if (currentBid != null && newBid.getAmount() <= currentBid.getAmount()) {
             throw new IllegalArgumentException("Bid must be higher than current bid");

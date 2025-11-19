@@ -761,13 +761,14 @@ public class EndUserApp implements PropertyChangeListener {
 
     /**
      * Called when the auction session fires a property change event.
-     * This method updates the UI when bids are placed by any bidder.
+     * This method updates the UI when bids are placed by any bidder or when the auction starts.
      */
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
-        // Check if this is a bid update event
-        if (BIDDING_EVENT.BID_UPDATE.toString().equals(evt.getPropertyName())) {
-            // Update the current price label on the UI thread
+        String eventName = evt.getPropertyName();
+
+        if (BIDDING_EVENT.BID_UPDATE.toString().equals(eventName)) {
+            // Bid update event
             SwingUtilities.invokeLater(() -> {
                 if (currentAuctionSession != null && currentAuctionSession.getCurrentPrice() != null
                         && currentAuctionSession.getCurrentPrice() > 0) {
@@ -783,6 +784,19 @@ public class EndUserApp implements PropertyChangeListener {
                     currentPriceLabel.setText("No bids yet");
                     currentPriceLabel.setForeground(TEXT_LIGHT);
                 }
+            });
+        } else if (BIDDING_EVENT.AUCTION_STARTED.toString().equals(eventName)) {
+            // Auction started event
+            SwingUtilities.invokeLater(() -> {
+                System.out.println("🔔 AUCTION STARTED: Bidding is now open!");
+
+                // Show notification to user
+                JOptionPane.showMessageDialog(frame,
+                        "The auction has started! You can now place bids.",
+                        "Auction Started",
+                        JOptionPane.INFORMATION_MESSAGE);
+
+                // Optional: Enable bid buttons or update UI status indicator
             });
         }
     }
