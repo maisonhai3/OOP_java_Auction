@@ -3,6 +3,8 @@ package auction.domain;
 import java.util.Date;
 import java.util.List;
 
+import static java.lang.Math.max;
+
 public class AuctionSession {
     // Fields
     private String auctionId;
@@ -17,9 +19,10 @@ public class AuctionSession {
 
     private Float openingBid;
     private Float bidIncrement;
+
+    // Going once, going twice, sold to...
     private Bid bid;
     private Bid currentBid;
-
     private Float hammerPrice;
     private Float buyerPremiumFee;
 
@@ -31,6 +34,13 @@ public class AuctionSession {
             this.catalog.add(lot);
         }
         this.status = AuctionStatus.SCHEDULED;
+
+        PriceRange priceRange = lot.getEstimateRange();
+
+        this.openingBid = priceRange.hasValue() ?
+                priceRange.getMinPrice() : Float.valueOf(0.0f);
+
+        this.bidIncrement = max(0, this.openingBid * 0.05f); // 5% of opening bid
     }
 
     // Constructor for repository (when loading from database)
