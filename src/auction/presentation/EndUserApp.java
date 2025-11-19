@@ -36,6 +36,7 @@ public class EndUserApp implements PropertyChangeListener {
     private final UserLobbyServices userLobbyServices = UserLobbyServices.getInstance();
     private final AuctionSessionService auctionSessionService = AuctionSessionService.getInstance();
     private final JoinAuctionSession joinAuctionSession = JoinAuctionSession.getInstance();
+    private final UserService userService = UserService.getInstance();
 
     // Modern Color Scheme
     private static final Color PRIMARY_COLOR = new Color(41, 128, 185);      // Professional Blue
@@ -463,7 +464,7 @@ public class EndUserApp implements PropertyChangeListener {
         placeBidButton.addActionListener(e -> {
             try {
                 // Validate inputs
-                if (currentAuctionSessionId == -1) {
+                if (currentAuctionSession == null) {
                     JOptionPane.showMessageDialog(frame,
                             "Please join an auction first",
                             "Error",
@@ -482,8 +483,18 @@ public class EndUserApp implements PropertyChangeListener {
 
                 float bidAmount = Float.parseFloat(bidAmountStr);
 
-                // Place custom bid
-                auctionSessionService.placeBidCustomAmount(currentAuctionSessionId, bidAmount, usernameText);
+                // Validate user exists
+                if (!userService.userExists(usernameText)) {
+                    JOptionPane.showMessageDialog(frame,
+                            "User not found: " + usernameText,
+                            "Error",
+                            JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                // Place custom bid DIRECTLY on the current session (with observers attached)
+                Bid bid = new Bid(bidAmount, usernameText);
+                currentAuctionSession.placeBid(bid);
 
                 // Show success message
                 JOptionPane.showMessageDialog(frame,
@@ -520,7 +531,7 @@ public class EndUserApp implements PropertyChangeListener {
         incrementalBidButton.addActionListener(e -> {
             try {
                 // Validate auction session
-                if (currentAuctionSessionId == -1) {
+                if (currentAuctionSession == null) {
                     JOptionPane.showMessageDialog(frame,
                             "Please join an auction first",
                             "Error",
@@ -528,12 +539,29 @@ public class EndUserApp implements PropertyChangeListener {
                     return;
                 }
 
-                // Place incremental bid
-                auctionSessionService.placeBidIncremental(currentAuctionSessionId, usernameText);
+                // Validate user exists
+                if (!userService.userExists(usernameText)) {
+                    JOptionPane.showMessageDialog(frame,
+                            "User not found: " + usernameText,
+                            "Error",
+                            JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                // Calculate new bid amount
+                Float currentBidAmount = (currentAuctionSession.getCurrentBid() != null)
+                        ? currentAuctionSession.getCurrentBid().getAmount()
+                        : 0f;
+                Float newBidAmount = Math.max(currentBidAmount + currentAuctionSession.getBidIncrement(),
+                        currentAuctionSession.getOpeningBid());
+
+                // Place incremental bid DIRECTLY on the current session (with observers attached)
+                Bid bid = new Bid(newBidAmount, usernameText);
+                currentAuctionSession.placeBid(bid);
 
                 // Show success message
                 JOptionPane.showMessageDialog(frame,
-                        "Incremental bid placed successfully!",
+                        "Incremental bid placed successfully: $" + String.format("%.2f", newBidAmount),
                         "Success",
                         JOptionPane.INFORMATION_MESSAGE);
 
