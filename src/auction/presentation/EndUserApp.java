@@ -716,10 +716,10 @@ public class EndUserApp implements PropertyChangeListener {
             bidIncrementLabel.setText("Bid Increment: Not set");
         }
 
-        // Display current highest bid
-        if (currentAuctionSession != null && currentAuctionSession.getCurrentBid() != null) {
-            Bid currentBid = currentAuctionSession.getCurrentBid();
-            currentPriceLabel.setText(String.format("$%.2f", currentBid.getAmount()));
+        // Display current price (current highest bid)
+        if (currentAuctionSession != null && currentAuctionSession.getCurrentPrice() != null
+                && currentAuctionSession.getCurrentPrice() > 0) {
+            currentPriceLabel.setText(String.format("$%.2f", currentAuctionSession.getCurrentPrice()));
             currentPriceLabel.setForeground(ACCENT_COLOR);
         } else {
             currentPriceLabel.setText("No bids yet");
@@ -767,16 +767,16 @@ public class EndUserApp implements PropertyChangeListener {
     public void propertyChange(PropertyChangeEvent evt) {
         // Check if this is a bid update event
         if (BIDDING_EVENT.BID_UPDATE.toString().equals(evt.getPropertyName())) {
-            Bid newBid = (Bid) evt.getNewValue();
-
             // Update the current price label on the UI thread
             SwingUtilities.invokeLater(() -> {
-                if (newBid != null) {
-                    currentPriceLabel.setText(String.format("$%.2f", newBid.getAmount()));
+                if (currentAuctionSession != null && currentAuctionSession.getCurrentPrice() != null
+                        && currentAuctionSession.getCurrentPrice() > 0) {
+                    Float currentPrice = currentAuctionSession.getCurrentPrice();
+                    currentPriceLabel.setText(String.format("$%.2f", currentPrice));
                     currentPriceLabel.setForeground(ACCENT_COLOR);
 
                     // Log the update
-                    System.out.println("🔔 BID UPDATE: New highest bid is $" + String.format("%.2f", newBid.getAmount()));
+                    System.out.println("🔔 BID UPDATE: Current price is now $" + String.format("%.2f", currentPrice));
 
                     // Optional: Flash animation or sound notification could be added here
                 } else {
